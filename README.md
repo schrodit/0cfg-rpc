@@ -43,3 +43,22 @@ PR's will be reviewed on a best effort basis and integrated into the next releas
 * Yarn
 
 ### Build
+
+## Contribute
+
+Fork the project and send a PR.
+PR's will be reviewed on a best effort basis and integrated into the next release.
+
+### Prerequisites
+
+* NodeJs 14.4.0
+* Yarn
+
+### Build
+
+1. `yarn`
+2. `yarn bootstrap`
+3. `yarn build`
+4. `yarn test`
+5. `yarn lintFix`
+
