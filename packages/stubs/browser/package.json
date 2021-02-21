@@ -1,0 +1,34 @@
+{
+  "name": "@0cfg/stubs-browser",
+  "version": "1.0.1",
+  "author": "Jonas Zipprick <jonas@codesphere.cloud>",
+  "license": "MIT",
+  "private": false,
+  "engines": {
+    "node": "14.4.0",
+    "npm": ">=6.14.10"
+  },
+  "scripts": {
+    "_deleteLib": "rimraf lib",
+    "_deleteBuildTmp": "rimraf .build-tmp",
+    "_deleteNodeModules": "rimraf node_modules",
+    "clean": "run-s _deleteBuildTmp _deleteLib _deleteNodeModules",
+    "test": "jest --passWithNoTests",
+    "build": "tsc"
+  },
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "@0cfg/reply-common": "0.0.1",
+    "@0cfg/stubs-common": "0.0.1",
+    "@0cfg/utils-common": "0.0.1"
+  },
+  "devDependencies": {
+    "mock-socket": "^9.0.3",
+    "jest-websocket-mock": "^2.2.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

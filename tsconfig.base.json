@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "commonjs",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "composite": true,
+    "esModuleInterop": true,
+    "incremental": true,
+    "removeComments": true,
+    "lib": [
+      "ES2020"
+    ],
+    "types": [
+      "jest"
+    ],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "exclude": [
+    "**/__test__/**",
+    "**/__mock__/**",
+    "**/lib/**"
+  ]
+}

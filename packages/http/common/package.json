@@ -1,0 +1,26 @@
+{
+  "name": "@0cfg/http-common",
+  "version": "0.0.1",
+  "author": "Elias Groll <elias@codesphere.cloud>",
+  "license": "MIT",
+  "private": false,
+  "engines": {
+    "node": "14.4.0",
+    "npm": ">=6.14.10"
+  },
+  "scripts": {
+    "_deleteLib": "rimraf lib",
+    "_deleteBuildTmp": "rimraf .build-tmp",
+    "_deleteNodeModules": "rimraf node_modules",
+    "clean": "run-s _deleteBuildTmp _deleteLib _deleteNodeModules",
+    "test": "jest --passWithNoTests",
+    "build": "ttsc"
+  },
+  "files": [
+    "lib"
+  ],
+  "gitHead": "a97dc31a2c8532761c234ee1ccbf74cf4c30aeff",
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.node.json",
+  "compilerOptions": {
+    "rootDir": "src/ts",
+    "outDir": "lib",
+    "tsBuildInfoFile": ".build-tmp/tsconfig.tsbuildinfo",
+    "plugins": [
+      {
+        "transform": "ts-type-checked/transformer"
+      }
+    ]
+  }
+}

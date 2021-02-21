@@ -1,0 +1,41 @@
+{
+  "name": "@0cfg/stubs-common",
+  "version": "0.0.1",
+  "author": "Jonas Zipprick <jonas@codesphere.cloud>",
+  "license": "MIT",
+  "private": false,
+  "engines": {
+    "node": "14.4.0",
+    "npm": ">=6.14.10"
+  },
+  "scripts": {
+    "_deleteLib": "rimraf lib",
+    "_deleteBuildTmp": "rimraf .build-tmp",
+    "_deleteNodeModules": "rimraf node_modules",
+    "clean": "run-s _deleteBuildTmp _deleteLib _deleteNodeModules",
+    "test": "jest --passWithNoTests",
+    "build": "tsc"
+  },
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "@azure/storage-blob": "^12.1.0",
+    "@0cfg/reply-common": "0.0.1",
+    "@0cfg/utils-common": "0.0.1",
+    "@google-cloud/pubsub": "^2.5.0",
+    "@types/mssql": "^6.0.4",
+    "@types/pg": "^7.14.5",
+    "@types/redis": "^2.8.27",
+    "azure-storage": "^2.10.3",
+    "mariadb": "^2.4.2",
+    "mssql": "^6.2.1",
+    "p-queue": "^6.6.1",
+    "pg": "~7.18.2",
+    "redis": "^3.0.2"
+  },
+  "gitHead": "a97dc31a2c8532761c234ee1ccbf74cf4c30aeff",
+  "publishConfig": {
+    "access": "public"
+  }
+}

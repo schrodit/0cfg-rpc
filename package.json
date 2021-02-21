@@ -1,0 +1,60 @@
+{
+  "name": "0cfg",
+  "version": "0.0.1",
+  "description": "Codesphere RPC is a modern, modular open source RPC framework for Typescript, which abstracts away HTTP and WebSocket and lets you write code as if there was no network layer in between.",
+  "repository": "https://github.com/0cfg/rpc.git",
+  "author": "Elias Groll <elias@codesphere.cloud>",
+  "private": true,
+  "engines": {
+    "node": "14.4.0",
+    "npm": ">=6.14.10"
+  },
+  "scripts": {
+    "_deleteNodeModules": "rimraf node_modules",
+    "_cleanPackages": "lerna run clean",
+    "_deleteBuildInfo": "rimraf packages/**/tsconfig.tsbuildinfo",
+    "printBuildOrder": "lerna list --toposort",
+    "bootstrap": "lerna bootstrap",
+    "clean": "run-s _deleteBuildInfo _cleanPackages _deleteNodeModules",
+    "prepare": "lerna run prepare",
+    "lintFix": "eslint **/*.ts --ignore-pattern node_modules/ --ignore-pattern *.d.ts --quiet --fix",
+    "lint": "eslint **/*.ts --ignore-pattern node_modules/ --ignore-pattern *.d.ts --quiet",
+    "test": "lerna run test",
+    "build": "lerna run build --stream",
+    "dev": "node dev.js --root=packages",
+    "devBuild": "node dev.js --root=packages --buildOnly",
+    "pkg" : "lerna run pkg"
+  },
+  "yarnWorkspaces": true,
+  "workspaces": [
+    "packages/**/common",
+    "packages/**/node",
+    "packages/**/browser"
+  ],
+  "devDependencies": {
+    "@types/jest": "^26.0.20",
+    "@types/node": "^14.14.22",
+    "@typescript-eslint/eslint-plugin": "4.1.0",
+    "@typescript-eslint/parser": "4.1.0",
+    "chalk": "^4.1.0",
+    "copyfiles": "^2.4.1",
+    "eslint": "^7.18.0",
+    "glob": "^7.1.6",
+    "jest": "^26.4.0",
+    "jest-junit": "^11.1.0",
+    "killall": "^1.0.4",
+    "lerna": "^3.22.1",
+    "npm-run-all": "^4.1.5",
+    "npm-watch": "^0.7.0",
+    "rimraf": "3.0.2",
+    "ts-jest": "^26.4.3",
+    "ttypescript": "^1.5.12",
+    "typescript": "~4.0.5"
+  },
+  "dependencies": {
+    "alert": "^5.0.10",
+    "inversify": "^5.0.5",
+    "reflect-metadata": "^0.1.13",
+    "ts-type-checked": "0.0.1"
+  }
+}
