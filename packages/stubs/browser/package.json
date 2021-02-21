@@ -1,6 +1,6 @@
 {
   "name": "@0cfg/stubs-browser",
-  "version": "1.0.1",
+  "version": "0.0.1",
   "author": "Jonas Zipprick <jonas@codesphere.cloud>",
   "license": "MIT",
   "private": false,
@@ -20,13 +20,13 @@
     "lib"
   ],
   "dependencies": {
-    "@0cfg/reply-common": "0.0.1",
-    "@0cfg/stubs-common": "0.0.1",
+    "@0cfg/reply-common": "^0.0.1",
+    "@0cfg/stubs-common": "^0.0.1",
     "@0cfg/utils-common": "0.0.1"
   },
   "devDependencies": {
-    "mock-socket": "^9.0.3",
-    "jest-websocket-mock": "^2.2.0"
+    "jest-websocket-mock": "^2.2.0",
+    "mock-socket": "^9.0.3"
   },
   "publishConfig": {
     "access": "public"

@@ -20,9 +20,9 @@
     "lib"
   ],
   "dependencies": {
-    "@0cfg/http-common": "0.0.1",
-    "@0cfg/stubs-common": "0.0.1",
-    "@0cfg/reply-common": "0.0.1",
+    "@0cfg/http-common": "^0.0.1",
+    "@0cfg/reply-common": "^0.0.1",
+    "@0cfg/stubs-common": "^0.0.1",
     "cross-fetch": "3.0.6"
   },
   "gitHead": "a97dc31a2c8532761c234ee1ccbf74cf4c30aeff",
