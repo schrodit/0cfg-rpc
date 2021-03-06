@@ -1,4 +1,4 @@
-import {errStatus, okReply, Reply, Status} from '@0cfg/reply-common/lib/Reply';
+import {errStatus, okReply, okStatus, Reply, Status} from '@0cfg/reply-common/lib/Reply';
 import {has} from '@0cfg/utils-common/lib/has';
 import {wait} from '@0cfg/utils-common/lib/wait';
 
@@ -71,7 +71,7 @@ export abstract class ReconnectingClient {
                 this.connecting = false;
                 this.reconnectCounter = 0;
                 if (has(connectionStatus)) {
-                    connectionStatus.log();
+                    okStatus('Connection to external service successfully.').log();
                     this.fireConnectionListeners(connectionStatus);
                 }
             })();
