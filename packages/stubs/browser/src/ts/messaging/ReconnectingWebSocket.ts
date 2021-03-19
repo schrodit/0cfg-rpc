@@ -200,7 +200,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
                 });
             this.socket.addEventListener('error', (ev: Event) => {
                 clearTimeout(timeout);
-                resolve(errStatus('Host unreachable.'));
+                resolve(errStatus(`Host unreachable. ${JSON.stringify(ev)}.`));
             });
         });
 
