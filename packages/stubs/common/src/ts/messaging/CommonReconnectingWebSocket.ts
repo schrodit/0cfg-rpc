@@ -37,6 +37,8 @@ export abstract class CommonReconnectingWebSocket extends ReconnectingClient {
      */
     public abstract onMessage(listener: (data: string) => void): void;
 
+    public abstract removeEventListener(type: string, listener: (this: any, ev: any) => any): void;
+
     /**
      * Attach a listener which is invoked on close of the ws.
      */

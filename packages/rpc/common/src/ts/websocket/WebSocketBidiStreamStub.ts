@@ -9,33 +9,34 @@ import {has} from '@0cfg/utils-common/lib/has';
 export class WebSocketBidiStreamStub<ClientMessageT, ServerMessageT>
     implements BidiStreamStub<ClientMessageT, ServerMessageT> {
 
+    private completed: boolean = false;
+
     private readonly socket: CommonReconnectingWebSocket;
-    private requestId: number | undefined;
     private readonly method: string;
     private readonly messageListeners: MessageListener<ServerMessageT>[] = [];
     private readonly completeListeners: CompleteListener[] = [];
-    private readonly sequential: Sequential;
+    private readonly requestId: number;
+    private readonly messageListener: (data: string) => void;
 
     public constructor(socket: CommonReconnectingWebSocket, requestIdSequential: Sequential, method: string) {
         this.socket = socket;
-        this.sequential = requestIdSequential;
         this.method = method;
-        this.socket.onClose(message =>
-            this.completeListeners.forEach(listener =>
-                listener(errStatus(message))));
-        this.socket.onMessage(data => this.parseAndForwardServerMessage(data));
+        this.socket.onClose(message => {
+            this.completed = true;
+            this.completeListeners.forEach(listener => listener(errStatus(message)))
+            this.socket.removeEventListener('message', this.messageListener);
+        });
+        this.messageListener = (data) => this.parseAndForwardServerMessage(data);
+        this.socket.onMessage(this.messageListener);
+        this.requestId = requestIdSequential.next();
     }
 
     public complete(end: Reply): void {
-        if (!has(this.requestId)) {
-            return;
-        }
-        send<SerializedReply<never>>(this.socket, {
+        send<SerializedReply>(this.socket, {
             requestId: this.requestId,
             method: COMPLETE_METHOD,
             args: end.toSerializedReply(),
         });
-        this.requestId = undefined;
     }
 
     public onCompleted(listener: CompleteListener): void {
@@ -47,9 +48,10 @@ export class WebSocketBidiStreamStub<ClientMessageT, ServerMessageT>
     }
 
     public send(message: ClientMessageT, method?: string): void {
-        if (!has(this.requestId)) {
-            this.requestId = this.sequential.next();
+        if (this.completed) {
+            throw new Error('Bidi stream already completed.');
         }
+
         send(this.socket, {
             requestId: this.requestId,
             method: this.method,
@@ -64,7 +66,9 @@ export class WebSocketBidiStreamStub<ClientMessageT, ServerMessageT>
         }
         if (has(message.complete) && message.complete) {
             const reply = Reply.createFromSerializedReply(message.reply as SerializedReply);
+            this.completed = true;
             this.completeListeners.forEach(listener => listener(reply));
+            this.socket.removeEventListener('event', this.messageListener);
         } else {
             this.messageListeners.forEach(listener => listener(message.reply as ServerMessageT));
         }

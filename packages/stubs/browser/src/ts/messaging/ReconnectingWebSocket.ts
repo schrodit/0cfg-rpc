@@ -135,7 +135,6 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return true;
     }
 
-
     public send(data: string | ArrayBufferLike | Blob | ArrayBufferView):
         void {
         this.waitForConnection().then(() => this.socket!.send(data));
