@@ -71,7 +71,7 @@ export abstract class ReconnectingClient {
                 this.connecting = false;
                 this.reconnectCounter = 0;
                 if (has(connectionStatus)) {
-                    okStatus('Connection to external service successfully.').log();
+                    okStatus('Connection to external service established successfully.').log();
                     this.fireConnectionListeners(connectionStatus);
                 }
             })();
