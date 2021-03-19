@@ -14,6 +14,7 @@ const CONNECTION_TIMEOUT = 2 * milliSecondsInASecond;
 
 /**
  * A Wrapper for WebSocket (compatible with the browser WebSocket interface) that automatically handles reconnection.
+ * Only listeners added with {@link addEventListener} will still be receiving server messages after reconnects.
  */
 export class ReconnectingWebSocket extends CommonReconnectingWebSocket implements WebSocket {
     public readonly url: string;
@@ -64,11 +65,17 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return this.socket!.extensions;
     }
 
+    /**
+     * Does not survive reconnects.
+     */
     public set onclose(onclose: typeof WebSocket.prototype.onclose) {
         this.throwIfNotYetConnected();
         this.socket!.onclose = onclose;
     }
 
+    /**
+     * Does not survive reconnects.
+     */
     public get onclose(): typeof WebSocket.prototype.onclose {
         this.throwIfNotYetConnected();
         return this.socket!.onclose;
@@ -140,6 +147,10 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         this.waitForConnection().then(() => this.socket!.send(data));
     }
 
+    /**
+     * Will still be added, even after reconnects.
+     * Make sure to remove the listener again if you don't need it anymore ({@link removeEventListener}).
+     */
     public addEventListener<K extends keyof WebSocketEventMap>(
         type: K,
         listener: (this: WebSocket, ev: WebSocketEventMap[K]) => any,
