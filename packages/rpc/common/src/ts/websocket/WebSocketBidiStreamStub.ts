@@ -68,7 +68,7 @@ export class WebSocketBidiStreamStub<ClientMessageT, ServerMessageT>
             const reply = Reply.createFromSerializedReply(message.reply as SerializedReply);
             this.completed = true;
             this.completeListeners.forEach(listener => listener(reply));
-            this.socket.removeEventListener('event', this.messageListener);
+            this.socket.removeEventListener('message', this.messageListener);
         } else {
             this.messageListeners.forEach(listener => listener(message.reply as ServerMessageT));
         }
