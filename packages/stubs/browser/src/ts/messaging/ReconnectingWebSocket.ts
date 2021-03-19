@@ -1,8 +1,16 @@
-import {getOk, Reply, errStatus} from '@0cfg/reply-common/lib/Reply';
+import {errStatus, getOk, Reply} from '@0cfg/reply-common/lib/Reply';
 import {has} from '@0cfg/utils-common/lib/has';
-import {NotYetConnectedError, CommonReconnectingWebSocket}
-    from '@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket';
+import {
+    CommonReconnectingWebSocket,
+    NotYetConnectedError,
+} from '@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket';
 import {ReconnectConfig} from '@0cfg/stubs-common/lib/ReconnectingClient';
+import {milliSecondsInASecond} from '@0cfg/utils-common/lib/timeSpan';
+
+/**
+ * In ms
+ */
+const CONNECTION_TIMEOUT = 2 * milliSecondsInASecond;
 
 /**
  * A Wrapper for WebSocket (compatible with the browser WebSocket interface) that automatically handles reconnection.
@@ -14,6 +22,13 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     public readonly CONNECTING = WebSocket.CONNECTING;
     public readonly OPEN = WebSocket.OPEN;
     private readonly protocols: string | string[] | undefined;
+    private readonly eventListeners:
+        { [T in keyof WebSocketEventMap]: ((this: WebSocket, ev: any) => any)[] } = {
+        'close': [],
+        'error': [],
+        'message': [],
+        'open': [],
+    };
     private socket: WebSocket | undefined;
     private wasClosed: boolean = false;
 
@@ -59,6 +74,9 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return this.socket!.onclose;
     }
 
+    /**
+     * Does not survive reconnects.
+     */
     public set onerror(onerror: typeof WebSocket.prototype.onerror) {
         this.throwIfNotYetConnected();
         this.socket!.onerror = onerror;
@@ -69,6 +87,9 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return this.socket!.onerror;
     }
 
+    /**
+     * Does not survive reconnects.
+     */
     public set onmessage(onmessage: typeof WebSocket.prototype.onmessage) {
         this.throwIfNotYetConnected();
         this.socket!.onmessage = onmessage;
@@ -79,6 +100,9 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return this.socket!.onmessage as typeof WebSocket.prototype.onmessage;
     }
 
+    /**
+     * Does not survive reconnects.
+     */
     public set onopen(onopen: typeof WebSocket.prototype.onopen) {
         this.throwIfNotYetConnected();
         this.socket!.onopen = onopen;
@@ -105,8 +129,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         this.socket?.close(code, reason);
     }
 
-    public dispatchEvent(event: Event):
-        boolean {
+    public dispatchEvent(event: Event): boolean {
         this.waitForConnection().then(() =>
             this.socket!.dispatchEvent(event));
         return true;
@@ -118,30 +141,21 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         this.waitForConnection().then(() => this.socket!.send(data));
     }
 
-    protected connectToExternalService(): Promise<Reply> {
-        return new Promise<Reply>(resolve => {
-            delete this.socket;
-            this.socket = new WebSocket(this.url, this.protocols);
-            this.socket.addEventListener('open', () => resolve(getOk()));
-            this.socket.addEventListener('close',
-                (ev: CloseEvent) => {
-                    if (this.isConnected() && !this.wasClosed && !ev.wasClean && has(ev.reason)) {
-                        this.onDisconnect(errStatus(ev.reason));
-                    }
-                });
-            this.socket.addEventListener('error', (ev: Event) => {
-                resolve(errStatus('Host unreachable.'));
-            });
-        });
-
-    }
-
     public addEventListener<K extends keyof WebSocketEventMap>(
         type: K,
         listener: (this: WebSocket, ev: WebSocketEventMap[K]) => any,
         options?: boolean | AddEventListenerOptions): void {
+        this.eventListeners[type].push(listener);
         this.waitForConnection().then(() =>
             this.socket!.addEventListener(type, listener, options));
+    }
+
+    public removeEventListener<K extends keyof WebSocketEventMap>(
+        type: K,
+        listener: (this: WebSocket, ev: WebSocketEventMap[K]) => any,
+        options?: boolean | EventListenerOptions): void {
+        this.eventListeners[type] = this.eventListeners[type].filter(e => e !== listener);
+        this.waitForConnection().then(() => this.socket?.removeEventListener(type, listener, options));
     }
 
     public onMessage(listener: (data: string) => void): void {
@@ -149,14 +163,37 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     }
 
     public onClose(listener: (message: string) => void): void {
-        this.resolveWhenConnected().then(() => this.socket?.addEventListener('close', (ev) => listener(ev.reason)));
+        super.resolveWhenConnected().then(() => this.socket?.addEventListener('close', (ev) => listener(ev.reason)));
     }
 
-    public removeEventListener<K extends keyof WebSocketEventMap>(
-        type: K,
-        listener: (this: WebSocket, ev: WebSocketEventMap[K]) => any,
-        options?: boolean | EventListenerOptions): void {
-        this.waitForConnection().then(() => this.socket?.removeEventListener(type, listener, options));
+    protected connectToExternalService(): Promise<Reply> {
+        return new Promise<Reply>(resolve => {
+            delete this.socket;
+            this.socket = new WebSocket(this.url, this.protocols);
+            const timeout = setTimeout(
+                () => resolve(errStatus('Connection timeout.')),
+                CONNECTION_TIMEOUT
+            );
+            this.socket.addEventListener('open', () => {
+                clearTimeout(timeout);
+                for (const eventType in this.eventListeners) {
+                    this.eventListeners[eventType as keyof WebSocketEventMap]
+                        .forEach(listener => this.socket?.addEventListener(eventType, listener));
+                }
+                resolve(getOk());
+            });
+            this.socket.addEventListener('close',
+                (ev: CloseEvent) => {
+                    if (super.isConnected() && !this.wasClosed && !ev.wasClean && has(ev.reason)) {
+                        super.onDisconnect(errStatus(ev.reason));
+                    }
+                });
+            this.socket.addEventListener('error', (ev: Event) => {
+                clearTimeout(timeout);
+                resolve(errStatus('Host unreachable.'));
+            });
+        });
+
     }
 
     private async waitForConnection(): Promise<void> {
