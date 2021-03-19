@@ -23,7 +23,7 @@ export class WebSocketBidiStreamStub<ClientMessageT, ServerMessageT>
         this.method = method;
         this.socket.onClose(message => {
             this.completed = true;
-            this.completeListeners.forEach(listener => listener(errStatus(message)))
+            this.completeListeners.forEach(listener => listener(errStatus(message)));
             this.socket.removeEventListener('message', this.messageListener);
         });
         this.messageListener = (data) => this.parseAndForwardServerMessage(data);
