@@ -2,7 +2,7 @@ import {BidiStreamStub} from '../stub/BidiStreamStub';
 import {CommonReconnectingWebSocket} from '@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket';
 import {Sequential} from '@0cfg/utils-common/lib/Sequential';
 import {send} from './utils';
-import {WebSocketStreamStub} from "./WebSocketStreamStub";
+import {WebSocketStreamStub} from './WebSocketStreamStub';
 
 export class WebSocketBidiStreamStub<ClientMessageT, ServerMessageT>
     extends WebSocketStreamStub<ServerMessageT> implements BidiStreamStub<ClientMessageT, ServerMessageT> {

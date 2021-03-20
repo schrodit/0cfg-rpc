@@ -1,9 +1,9 @@
-import {CommonReconnectingWebSocket} from "@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket";
-import {Sequential} from "@0cfg/utils-common/lib/Sequential";
-import {errStatus, Reply, SerializedReply} from "@0cfg/reply-common/lib/Reply";
-import {CompleteListener, MessageListener, parse, send} from "./utils";
-import {COMPLETE_METHOD} from "../stub/reservedRpcMethods";
-import {has} from "@0cfg/utils-common/lib/has";
+import {CommonReconnectingWebSocket} from '@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket';
+import {Sequential} from '@0cfg/utils-common/lib/Sequential';
+import {errStatus, Reply, SerializedReply} from '@0cfg/reply-common/lib/Reply';
+import {CompleteListener, MessageListener, parse, send} from './utils';
+import {COMPLETE_METHOD} from '../stub/reservedRpcMethods';
+import {has} from '@0cfg/utils-common/lib/has';
 
 export abstract class WebSocketStreamStub<ServerMessageT> {
     protected readonly socket: CommonReconnectingWebSocket;

@@ -3,7 +3,7 @@ import {getOk} from '@0cfg/reply-common/lib/Reply';
 import {CommonReconnectingWebSocket} from '@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket';
 import {Sequential} from '@0cfg/utils-common/lib/Sequential';
 import {send} from './utils';
-import {WebSocketStreamStub} from "./WebSocketStreamStub";
+import {WebSocketStreamStub} from './WebSocketStreamStub';
 
 export class WebSocketServerStreamStub<ClientMessageT, ServerMessageT>
     extends WebSocketStreamStub<ServerMessageT>
