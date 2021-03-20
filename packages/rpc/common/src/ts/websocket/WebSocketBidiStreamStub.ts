@@ -49,7 +49,7 @@ export class WebSocketBidiStreamStub<ClientMessageT, ServerMessageT>
 
     public send(message: ClientMessageT, method?: string): void {
         if (this.completed) {
-            throw new Error('Bidi stream already completed.');
+            throw new Error(`Can not send messages on a completed bidi stream (requestId: ${this.requestId}).`);
         }
 
         send(this.socket, {

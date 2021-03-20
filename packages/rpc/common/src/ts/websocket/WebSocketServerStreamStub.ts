@@ -40,7 +40,7 @@ export class WebSocketServerStreamStub<ClientMessageT, ServerMessageT>
 
     public start<ArgsT>(message: ArgsT): void {
         if (this.completed) {
-            throw new Error('Server stream already completed.');
+            throw new Error(`Can not send messages on a completed server stream (requestId: ${this.requestId}).`);
         }
         send(this.socket, {
             requestId: this.requestId,

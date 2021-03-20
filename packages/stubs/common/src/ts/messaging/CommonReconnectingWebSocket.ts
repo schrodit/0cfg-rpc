@@ -37,6 +37,11 @@ export abstract class CommonReconnectingWebSocket extends ReconnectingClient {
      */
     public abstract onMessage(listener: (data: string) => void): void;
 
+    /**
+     * Removes an event listener previously added with {@link onMessage}.
+     * @param type Type of event ('message', 'close', ...).
+     * @param listener the listeners instance that was added with {@link onMessage}.
+     */
     public abstract removeEventListener(type: string, listener: (this: any, ev: any) => any): void;
 
     /**
