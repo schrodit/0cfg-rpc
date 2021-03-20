@@ -45,11 +45,7 @@ const setupSocketAndListeners = async (connectMock: jest.Mock, closedMock: jest.
             maxReconnects: Number.MAX_SAFE_INTEGER,
             reconnectTimeout: 200,
         });
-    const listenForClose = () => ws.addEventListener('close', () => {
-        closedMock();
-        listenForClose();
-    });
-    listenForClose();
+    ws.addEventListener('close', () => closedMock());
     await ws.connect();
     await ws.resolveWhenConnected();
     return ws;
@@ -103,5 +99,5 @@ test('reconnects multiple times', async () => {
     }
 
     expect(connectMock).toBeCalledTimes(6);
-    expect(closedMock.mock.calls.length).toBeGreaterThan(100);
+    expect(closedMock).toBeCalledTimes(6);
 });
