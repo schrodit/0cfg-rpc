@@ -209,15 +209,15 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
                 }
                 resolve(getOk());
             });
-            this.socket.addEventListener('close',
-                (ev: CloseEvent) => {
-                    if (super.isConnected() && !this.wasClosed && !ev.wasClean && has(ev.reason)) {
-                        super.onDisconnect(errStatus(ev.reason));
-                    }
-                });
-            this.socket.addEventListener('error', (ev: Event) => {
+            this.socket.addEventListener('close', (ev: CloseEvent) => {
                 clearTimeout(timeout);
-                resolve(errStatus(`Host unreachable. ${JSON.stringify(ev)}.`));
+
+                if (super.isConnected() && !this.wasClosed && !ev.wasClean && has(ev.reason)) {
+                    super.onDisconnect(errStatus(ev.reason));
+                    return;
+                }
+
+                resolve(errStatus(`Socket closed unexpectedly. Code: ${ev.code}, Reason: ${ev.reason}.`));
             });
         });
 
