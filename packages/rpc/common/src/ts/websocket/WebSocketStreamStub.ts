@@ -5,7 +5,7 @@ import {CompleteListener, MessageListener, parse, send} from './utils';
 import {COMPLETE_METHOD} from '../stub/reservedRpcMethods';
 import {has} from '@0cfg/utils-common/lib/has';
 
-export abstract class WebSocketStreamStub<ServerMessageT> {
+export abstract class WebSocketStreamStub<ClientMessageT, ServerMessageT> {
     protected readonly socket: CommonReconnectingWebSocket;
     protected readonly method: string;
     protected readonly requestId: number;
@@ -42,6 +42,18 @@ export abstract class WebSocketStreamStub<ServerMessageT> {
             requestId: this.requestId,
             method: COMPLETE_METHOD,
             args: end.toSerializedReply(),
+        });
+    }
+
+    protected send(message: ClientMessageT): void {
+        if (this.completed) {
+            throw new Error(`Can not send messages on a completed bidi stream (requestId: ${this.requestId}).`);
+        }
+
+        send(this.socket, {
+            requestId: this.requestId,
+            method: this.method,
+            args: message,
         });
     }
 
