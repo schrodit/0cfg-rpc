@@ -10,5 +10,5 @@ export interface BidiStreamStub<ClientMessageT, ServerMessageT> {
 
     complete(end: Reply): void;
 
-    send(message: ClientMessageT, method?: string): void;
+    send(message: ClientMessageT): void;
 }

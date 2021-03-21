@@ -1,11 +1,16 @@
-import {NotYetConnectedError, CommonReconnectingWebSocket}
-    from '@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket';
+import {
+    CommonReconnectingWebSocket,
+    NotYetConnectedError,
+} from '@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket';
 
-import {errStatus, getOk, okReply, Reply} from '@0cfg/reply-common/lib/Reply';
+import {errStatus, getOk, Reply} from '@0cfg/reply-common/lib/Reply';
 import {has} from '@0cfg/utils-common/lib/has';
 import {ReconnectConfig} from '@0cfg/stubs-common/lib/ReconnectingClient';
 import WebSocket, {ClientOptions} from 'ws';
 import http from 'http';
+import {milliSecondsInASecond} from '@0cfg/utils-common/lib/timeSpan';
+
+const CONNECTION_TIMEOUT = 2 * milliSecondsInASecond;
 
 export class ReconnectingWebSocket extends CommonReconnectingWebSocket implements WebSocket {
 
@@ -17,6 +22,13 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     private readonly options: WebSocket.ClientOptions | undefined;
     private readonly expectedPingDelay: number;
     private readonly protocols: string | string[] | undefined;
+    private readonly eventListeners:
+        { [eventType: string]: (() => void)[] } = {
+        'close': [],
+        'error': [],
+        'message': [],
+        'open': [],
+    };
     private socket: WebSocket | undefined;
     private pingTimeout: NodeJS.Timeout | undefined;
     private wasClosed: boolean = false;
@@ -48,9 +60,19 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
 
     protected async connectToExternalService(): Promise<Reply> {
         return new Promise<Reply>(resolve => {
+            delete this.socket;
             this.socket = new WebSocket(this.url, this.protocols, this.options);
+            const timeout = setTimeout(
+                () => resolve(errStatus('Connection timeout.')),
+                CONNECTION_TIMEOUT
+            );
             this.socket.on('open', () => {
                 this.heartbeat();
+                clearTimeout(timeout);
+                for (const eventType in this.eventListeners) {
+                    this.eventListeners[eventType]
+                        .forEach(listener => this.socket?.addEventListener(eventType, listener));
+                }
                 resolve(getOk());
             });
             this.socket.on('ping', () => this.heartbeat);
@@ -62,6 +84,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
                 }
             });
             this.socket.addEventListener('error', (ev: WebSocket.ErrorEvent) => {
+                clearTimeout(timeout);
                 resolve(errStatus(ev.message));
             });
         });
@@ -92,6 +115,9 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return this.socket!.onclose;
     }
 
+    /**
+     * Does not survive reconnects.
+     */
     public set onerror(onerror: typeof WebSocket.prototype.onerror) {
         this.throwIfNotYetConnected();
         this.socket!.onerror = onerror;
@@ -102,6 +128,9 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return this.socket!.onerror;
     }
 
+    /**
+     * Does not survive reconnects.
+     */
     public set onmessage(onmessage: typeof WebSocket.prototype.onmessage) {
         this.throwIfNotYetConnected();
         this.socket!.onmessage = onmessage;
@@ -112,6 +141,9 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return this.socket!.onmessage as typeof WebSocket.prototype.onmessage;
     }
 
+    /**
+     * Does not survive reconnects.
+     */
     public set onopen(onopen: typeof WebSocket.prototype.onopen) {
         this.throwIfNotYetConnected();
         this.socket!.onopen = onopen;
@@ -236,6 +268,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         ((event: { wasClean: boolean; code: number; reason: string; target: WebSocket }) => void) |
         ((event: { error: any; message: any; type: string; target: WebSocket }) => void) |
         ((event: { target: WebSocket }) => void) | (() => void)): void {
+        this.eventListeners[method] = this.eventListeners[method].filter(e => e !== cb);
         this.waitForConnection().then(() => this.socket?.removeEventListener(method, cb as () => void));
     }
 
@@ -286,6 +319,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
             | ((event: { error: any; message: any; type: string; target: WebSocket }) => void)
             | ((event: { target: WebSocket }) => void)
             | (() => void), options?: WebSocket.EventListenerOptions): void {
+        this.eventListeners[method].push(cb as () => void);
         this.waitForConnection().then(() => this.socket?.addEventListener(method, cb as () => void));
     }
 

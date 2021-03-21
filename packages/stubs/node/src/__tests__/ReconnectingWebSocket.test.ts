@@ -1,6 +1,6 @@
 import http from 'http';
 import WebSocket from 'ws';
-import {ReconnectingWebSocket} from '../ReconnectingWebSocket';
+import {ReconnectingWebSocket} from '../ts/messaging/ReconnectingWebSocket';
 import {wait} from '@0cfg/utils-common/lib/wait';
 
 const servers: Record<number, http.Server> = {};
@@ -45,11 +45,7 @@ const setupSocketAndListeners = async (connectMock: jest.Mock, closedMock: jest.
             maxReconnects: Number.MAX_SAFE_INTEGER,
             reconnectTimeout: 200,
         });
-    const listenForClose = () => ws.addEventListener('close', () => {
-        closedMock();
-        listenForClose();
-    });
-    listenForClose();
+    ws.addEventListener('close', () => closedMock());
     await ws.connect();
     await ws.resolveWhenConnected();
     return ws;
@@ -81,7 +77,7 @@ test('reconnects', async () => {
     await ws.resolveWhenConnected();
 
     expect(connectMock).toBeCalledTimes(2);
-    expect(closedMock).toBeCalledTimes(1);
+    expect(closedMock).toBeCalledTimes(2);
 });
 
 test('reconnects multiple times', async () => {
@@ -103,5 +99,5 @@ test('reconnects multiple times', async () => {
     }
 
     expect(connectMock).toBeCalledTimes(6);
-    expect(closedMock).toBeCalledTimes(5);
+    expect(closedMock).toBeCalledTimes(6);
 });

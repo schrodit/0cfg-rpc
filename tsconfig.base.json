@@ -13,15 +13,12 @@
     "lib": [
       "ES2020"
     ],
-    "types": [
-      "jest"
-    ],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
   "exclude": [
-    "**/__test__/**",
-    "**/__mock__/**",
+    "**/__tests__/**",
+    "**/__mocks__/**",
     "**/lib/**"
   ]
 }
