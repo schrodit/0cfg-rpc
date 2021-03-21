@@ -1,15 +1,15 @@
 import fetch from 'node-fetch';
 import {HttpStatusCode} from '@0cfg/http-common/lib/HttpStatusCode';
 import {errStatus, getOk, okStatus, Reply} from '@0cfg/reply-common/lib/Reply';
-import {RpcServer, RpcServerConfig} from '../RpcServer';
-import {MockMiddleware, MockRequestReplyService, MockRequestReplyServiceArgs} from '../__mocks__/MockRequestReply';
+import {RpcServer, RpcServerConfig} from '../ts/RpcServer';
+import {MockMiddleware, MockRequestReplyService, MockRequestReplyServiceArgs} from '../ts/__mocks__/MockRequestReply';
 import {stringify} from '@0cfg/utils-common/lib/stringify';
 import {ReconnectingWebSocket} from '@0cfg/stubs-node/lib/messaging/ReconnectingWebSocket';
 import {Endpoint, HttpEndpoint, WebSocketEndpoint} from '@0cfg/rpc-common/lib/stub/Endpoint';
 import {HttpContext} from '@0cfg/rpc-common/lib/HttpContext';
 import {BidiStreamStub} from '@0cfg/rpc-common/lib/stub/BidiStreamStub';
-import {bidiStreamFactory} from '../BidiStreamService';
-import {MockBidiStream} from '../__mocks__/MockBidiStream';
+import {bidiStreamFactory} from '../ts/BidiStreamService';
+import {MockBidiStream} from '../ts/__mocks__/MockBidiStream';
 
 export enum TestServiceMethods {
     RequestReply = 'RequestReply',
@@ -268,19 +268,16 @@ test('bidi stream over websocket closed by server', async () => {
 
     await allRepliesReceived;
 
-    mockBidiStream.complete(getOk());
-
-    let completed;
-
-    await new Promise<void>(
+    const completionPromise = new Promise<Reply>(
         resolve => stream.onCompleted(async (end) => {
-                completed = end;
-                resolve();
+                resolve(end);
             }
         ));
 
+    mockBidiStream.complete(getOk());
+
+    await expect(completionPromise).resolves.toEqual(getOk());
     expect(received).toBe(500);
     expect(mockBidiStream.receivedCount).toBe(500);
     expect(mockServiceMiddleware.calledNTimes).toBe(500);
-    expect(completed).toEqual(getOk());
 });

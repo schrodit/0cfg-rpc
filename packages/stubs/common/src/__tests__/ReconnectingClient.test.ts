@@ -1,7 +1,7 @@
 import {errStatus, okStatus, Reply} from '@0cfg/reply-common/lib/Reply';
 import {wait} from '@0cfg/utils-common/lib/wait';
 import {expectReply} from '@0cfg/reply-common/lib/TestHelper';
-import {ReconnectConfig, ReconnectingClient} from '../ReconnectingClient';
+import {ReconnectConfig, ReconnectingClient} from '../ts/ReconnectingClient';
 
 const reconnectConfig = {
     maxReconnects: 10,

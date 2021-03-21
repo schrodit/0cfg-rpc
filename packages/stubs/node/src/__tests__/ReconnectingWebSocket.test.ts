@@ -1,6 +1,6 @@
 import http from 'http';
 import WebSocket from 'ws';
-import {ReconnectingWebSocket} from '../ReconnectingWebSocket';
+import {ReconnectingWebSocket} from '../ts/messaging/ReconnectingWebSocket';
 import {wait} from '@0cfg/utils-common/lib/wait';
 
 const servers: Record<number, http.Server> = {};

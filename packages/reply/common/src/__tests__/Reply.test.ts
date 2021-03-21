@@ -1,4 +1,4 @@
-import {Reply, SerializedReply, Status} from '../Reply';
+import {Reply, SerializedReply, Status} from '../ts/Reply';
 
 const message = 'This is a test';
 type TestType = { test: string };
