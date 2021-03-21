@@ -269,7 +269,7 @@ test('bidi stream over websocket closed by server', async () => {
     await allRepliesReceived;
 
     const completionPromise = new Promise<Reply>(
-        resolve => stream.onCompleted(async (end) => {
+        resolve => stream.onCompleted(async (end: Reply) => {
                 resolve(end);
             }
         ));
