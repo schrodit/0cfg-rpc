@@ -32,6 +32,12 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     private socket: WebSocket | undefined;
     private wasClosed: boolean = false;
 
+    private _onclose: typeof WebSocket.prototype.onclose = null;
+    private _onerror: typeof WebSocket.prototype.onerror = null;
+    private _onmessage: typeof WebSocket.prototype.onmessage = null;
+    private _onopen: typeof WebSocket.prototype.onopen = null;
+
+
     /**
      * From https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
      * Note that this api differs from the WebSocket implementation in the way that {@link connect} needs to be called
@@ -67,60 +73,64 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     /**
      * Stays set even after reconnects.
      */
+    public set onopen(onopen: typeof WebSocket.prototype.onopen) {
+        this._onopen = onopen;
+        if (has(this.socket)) {
+            this.socket.onopen = onopen;
+        }
+    }
+
+    public get onopen(): typeof WebSocket.prototype.onopen {
+        return this._onopen;
+    }
+
+    /**
+     * Stays set even after reconnects.
+     */
     public set onclose(onclose: typeof WebSocket.prototype.onclose) {
-        this.throwIfNotYetConnected();
-        this.socket!.onclose = onclose;
+        this._onclose = onclose;
+        if (has(this.socket)) {
+            this.socket.onclose = onclose;
+        }
     }
 
     /**
      * Stays set even after reconnects.
      */
     public get onclose(): typeof WebSocket.prototype.onclose {
-        this.throwIfNotYetConnected();
-        return this.socket!.onclose;
+        return this._onclose;
     }
 
     /**
      * Stays set even after reconnects.
      */
     public set onerror(onerror: typeof WebSocket.prototype.onerror) {
-        this.throwIfNotYetConnected();
-        this.socket!.onerror = onerror;
+        this._onerror = onerror;
+        if (has(this.socket)) {
+            this.socket.onerror = onerror;
+        }
     }
 
     public get onerror(): typeof WebSocket.prototype.onerror {
-        this.throwIfNotYetConnected();
-        return this.socket!.onerror;
+        return this._onerror;
     }
 
     /**
      * Stays set even after reconnects.
      */
     public set onmessage(onmessage: typeof WebSocket.prototype.onmessage) {
-        this.throwIfNotYetConnected();
-        this.socket!.onmessage = onmessage;
+        this._onmessage = onmessage;
+        if (has(this.socket)) {
+            this.socket.onmessage = onmessage;
+        }
     }
 
     public get onmessage(): typeof WebSocket.prototype.onmessage {
-        this.throwIfNotYetConnected();
-        return this.socket!.onmessage as typeof WebSocket.prototype.onmessage;
+        return this._onmessage;
     }
 
-    /**
-     * Stays set even after reconnects.
-     */
-    public set onopen(onopen: typeof WebSocket.prototype.onopen) {
-        this.throwIfNotYetConnected();
-        this.socket!.onopen = onopen;
-    }
-
-    public get onopen(): typeof WebSocket.prototype.onopen {
-        this.throwIfNotYetConnected();
-        return this.socket!.onopen;
-    }
 
     public get readyState(): number {
-        this.throwIfNotYetConnected();
         return this.socket!.readyState;
     }
 
@@ -177,18 +187,12 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
 
     protected connectToExternalService(): Promise<Reply> {
         return new Promise<Reply>(resolve => {
-            const onclose = this.socket ? this.socket.onclose : null;
-            const onmessage = this.socket ? this.socket.onmessage : null;
-            const onerror = this.socket ? this.socket.onerror : null;
-            const onopen = this.socket ? this.socket.onopen : null;
-
             delete this.socket;
             this.socket = new WebSocket(this.url, this.protocols);
-
-            this.socket.onclose = onclose;
-            this.socket.onmessage = onmessage;
-            this.socket.onerror = onerror;
-            this.socket.onopen = onopen;
+            this.socket.onclose = this._onclose;
+            this.socket.onmessage = this._onmessage;
+            this.socket.onerror = this._onerror;
+            this.socket.onopen = this._onopen;
 
             const timeout = setTimeout(
                 () => {
