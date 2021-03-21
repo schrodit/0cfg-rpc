@@ -17,7 +17,6 @@ export abstract class WebSocketStreamStub<ClientMessageT, ServerMessageT> {
     protected completed: boolean = false;
     protected readonly messageListeners: MessageListener<ServerMessageT>[] = [];
     protected readonly completeListeners: CompleteListener[] = [];
-    protected readonly messageListener: (data: string) => void;
 
     protected constructor(socket: CommonReconnectingWebSocket, requestIdSequential: Sequential, method: string) {
         this.socket = socket;
@@ -27,10 +26,11 @@ export abstract class WebSocketStreamStub<ClientMessageT, ServerMessageT> {
         this.socket.onClose(message => {
             this.completed = true;
             this.completeListeners.forEach(listener => listener(errStatus(message)));
-            this.socket.removeEventListener('message', this.messageListener);
+            this.socket.removeEventListener('message', messageListener);
         });
-        this.messageListener = (data) => this.parseAndForwardServerMessage(data);
-        this.socket.onMessage(this.messageListener);
+        const messageListener: (data: string) => void = (data) =>
+            this.parseAndForwardServerMessage(data, messageListener);
+        this.socket.onMessage(messageListener);
     }
 
     public onCompleted(listener: CompleteListener): void {
@@ -61,7 +61,7 @@ export abstract class WebSocketStreamStub<ClientMessageT, ServerMessageT> {
         });
     }
 
-    private parseAndForwardServerMessage(data: string): void {
+    private parseAndForwardServerMessage(data: string, messageListener: (data: string) => void): void {
         const message = parse<ServerMessageT | SerializedReply>(data);
         if (message.requestId !== this.requestId) {
             return;
@@ -70,7 +70,7 @@ export abstract class WebSocketStreamStub<ClientMessageT, ServerMessageT> {
             const reply = Reply.createFromSerializedReply(message.reply as SerializedReply);
             this.completed = true;
             this.completeListeners.forEach(listener => listener(reply));
-            this.socket.removeEventListener('message', this.messageListener);
+            this.socket.removeEventListener('message', messageListener);
         } else {
             this.messageListeners.forEach(listener => listener(message.reply as ServerMessageT));
         }
