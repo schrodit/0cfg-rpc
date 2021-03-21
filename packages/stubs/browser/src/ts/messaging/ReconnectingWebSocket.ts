@@ -66,7 +66,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     }
 
     /**
-     * Does not survive reconnects.
+     * Stays set even after reconnects.
      */
     public set onclose(onclose: typeof WebSocket.prototype.onclose) {
         this.throwIfNotYetConnected();
@@ -74,7 +74,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     }
 
     /**
-     * Does not survive reconnects.
+     * Stays set even after reconnects.
      */
     public get onclose(): typeof WebSocket.prototype.onclose {
         this.throwIfNotYetConnected();
@@ -82,7 +82,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     }
 
     /**
-     * Does not survive reconnects.
+     * Stays set even after reconnects.
      */
     public set onerror(onerror: typeof WebSocket.prototype.onerror) {
         this.throwIfNotYetConnected();
@@ -95,7 +95,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     }
 
     /**
-     * Does not survive reconnects.
+     * Stays set even after reconnects.
      */
     public set onmessage(onmessage: typeof WebSocket.prototype.onmessage) {
         this.throwIfNotYetConnected();
@@ -108,7 +108,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     }
 
     /**
-     * Does not survive reconnects.
+     * Stays set even after reconnects.
      */
     public set onopen(onopen: typeof WebSocket.prototype.onopen) {
         this.throwIfNotYetConnected();
@@ -178,10 +178,24 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
 
     protected connectToExternalService(): Promise<Reply> {
         return new Promise<Reply>(resolve => {
+            const onclose = this.socket ? this.socket.onclose : null;
+            const onmessage = this.socket ? this.socket.onmessage : null;
+            const onerror = this.socket ? this.socket.onerror : null;
+            const onopen = this.socket ? this.socket.onopen : null;
+
             delete this.socket;
             this.socket = new WebSocket(this.url, this.protocols);
+
+            this.socket.onclose = onclose;
+            this.socket.onmessage = onmessage;
+            this.socket.onerror = onerror;
+            this.socket.onopen = onopen;
+
             const timeout = setTimeout(
-                () => resolve(errStatus('Connection timeout.')),
+                () => {
+                    this.socket?.close();
+                    resolve(errStatus('Connection timed out.'));
+                },
                 CONNECTION_TIMEOUT
             );
             this.socket.addEventListener('open', () => {

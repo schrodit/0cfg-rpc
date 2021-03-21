@@ -5,6 +5,10 @@ import {CompleteListener, MessageListener, parse, send} from './utils';
 import {COMPLETE_METHOD} from '../stub/reservedRpcMethods';
 import {has} from '@0cfg/utils-common/lib/has';
 
+/**
+ * Base class of server streams and bidi streams.
+ * Can send and receive messages from a pub sub server.
+ */
 export abstract class WebSocketStreamStub<ClientMessageT, ServerMessageT> {
     protected readonly socket: CommonReconnectingWebSocket;
     protected readonly method: string;
@@ -15,7 +19,7 @@ export abstract class WebSocketStreamStub<ClientMessageT, ServerMessageT> {
     protected readonly completeListeners: CompleteListener[] = [];
     protected readonly messageListener: (data: string) => void;
 
-    public constructor(socket: CommonReconnectingWebSocket, requestIdSequential: Sequential, method: string) {
+    protected constructor(socket: CommonReconnectingWebSocket, requestIdSequential: Sequential, method: string) {
         this.socket = socket;
         this.method = method;
         this.requestId = requestIdSequential.next();
