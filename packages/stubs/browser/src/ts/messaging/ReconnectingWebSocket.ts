@@ -14,7 +14,6 @@ const CONNECTION_TIMEOUT = 2 * milliSecondsInASecond;
 
 /**
  * A Wrapper for WebSocket (compatible with the browser WebSocket interface) that automatically handles reconnection.
- * Only listeners added with {@link addEventListener} will still be receiving server messages after reconnects.
  */
 export class ReconnectingWebSocket extends CommonReconnectingWebSocket implements WebSocket {
     public readonly url: string;
