@@ -553,7 +553,6 @@ export class RpcServer<Context extends HttpContext> {
             this.replyViaHttp(invalidJSON(e), mutableContext, res);
             return;
         }
-        Object.freeze(args);
 
         const serverValidation = await this.runServerMiddleware(args, mutableContext);
         if (serverValidation.notOk()) {
