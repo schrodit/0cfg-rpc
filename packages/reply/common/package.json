@@ -1,6 +1,6 @@
 {
   "name": "@0cfg/reply-common",
-  "version": "0.0.3-alpha.0",
+  "version": "0.0.3",
   "author": "Elias Groll <elias@codesphere.cloud>",
   "license": "MIT",
   "private": false,

@@ -1,6 +1,6 @@
 {
   "name": "@0cfg/rpc-node",
-  "version": "0.0.3-alpha.0",
+  "version": "0.0.3",
   "author": "Elias Groll <elias@codesphere.cloud>",
   "license": "MIT",
   "private": false,
@@ -25,10 +25,10 @@
     "node-fetch": "2.6.1"
   },
   "dependencies": {
-    "@0cfg/http-common": "^0.0.3-alpha.0",
-    "@0cfg/reply-common": "^0.0.3-alpha.0",
-    "@0cfg/rpc-common": "^0.0.3-alpha.0",
-    "@0cfg/stubs-node": "^0.0.3-alpha.0",
+    "@0cfg/http-common": "^0.0.3",
+    "@0cfg/reply-common": "^0.0.3",
+    "@0cfg/rpc-common": "^0.0.3",
+    "@0cfg/stubs-node": "^0.0.3",
     "@0cfg/utils-common": "0.0.1",
     "bufferutil": "^4.0.1",
     "crypto": "^1.0.1",
