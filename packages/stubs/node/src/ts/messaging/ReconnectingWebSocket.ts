@@ -154,7 +154,10 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return this.socket!.onopen;
     }
 
-    public get readyState(): number {
+    public get readyState(): typeof WebSocket.OPEN
+                            | typeof WebSocket.CLOSED
+                            | typeof WebSocket.CONNECTING
+                            | typeof WebSocket.CLOSING {
         return this.socket?.readyState ?? this.CLOSED;
     }
 
