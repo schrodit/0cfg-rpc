@@ -15,10 +15,10 @@ const CONNECTION_TIMEOUT = 2 * milliSecondsInASecond;
 export class ReconnectingWebSocket extends CommonReconnectingWebSocket implements WebSocket {
 
     public readonly url: string;
-    public readonly CLOSED: number = WebSocket.CLOSED;
-    public readonly CLOSING: number = WebSocket.CLOSING;
-    public readonly CONNECTING: number = WebSocket.CONNECTING;
-    public readonly OPEN: number = WebSocket.OPEN;
+    public readonly CLOSED: typeof WebSocket.CLOSED = WebSocket.CLOSED;
+    public readonly CLOSING: typeof WebSocket.CLOSING = WebSocket.CLOSING;
+    public readonly CONNECTING: typeof WebSocket.CONNECTING = WebSocket.CONNECTING;
+    public readonly OPEN: typeof WebSocket.OPEN = WebSocket.OPEN;
     private readonly options: WebSocket.ClientOptions | undefined;
     private readonly expectedPingDelay: number;
     private readonly protocols: string | string[] | undefined;
