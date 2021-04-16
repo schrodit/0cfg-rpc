@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reconnecting Websockets now keep event listeners added even after reconnects.
 
+### Fixed
+
+- The RpcServer now handles complete messages to server streams.
+
 ## [0.0.1] - 2021-02-21
 
 - Initial release
