@@ -3,8 +3,10 @@ import {getOk, Reply} from '@0cfg/reply-common/lib/Reply';
 import {HttpContext} from '@0cfg/rpc-common/lib/HttpContext';
 import {Middleware} from '../Middleware';
 import {has} from '@0cfg/utils-common/lib/has';
+import {ServerStreamService} from '../ServerStreamService';
+import {milliSecondsInASecond} from '@0cfg/utils-common/lib/timeSpan';
 
-export class MockBidiStream extends BidiStreamService<'ping', 'pong'> {
+export class MockServerStream extends ServerStreamService<'init', 'mock'> {
     private readonly name: string;
 
     public completed?: Reply;
@@ -30,19 +32,7 @@ export class MockBidiStream extends BidiStreamService<'ping', 'pong'> {
         has(this.resolve) && this.resolve();
     }
 
-    public onMessage(message: 'ping', context: HttpContext): void {
-        this.receivedCount++;
-        this.send('pong');
-        this.sendCount++;
+    public start(args: 'init', context: HttpContext): void {
+        setInterval(() => this.send('mock'), milliSecondsInASecond);
     }
-
-    public reset() {
-        this.receivedCount = 0;
-        this.sendCount = 0;
-        if (this.completed !== undefined) {
-            this.complete(getOk());
-        }
-        this.completed = undefined;
-    }
-
 }

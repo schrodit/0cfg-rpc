@@ -10,12 +10,17 @@ import {HttpContext} from '@0cfg/rpc-common/lib/HttpContext';
 import {BidiStreamStub} from '@0cfg/rpc-common/lib/stub/BidiStreamStub';
 import {bidiStreamFactory} from '../ts/BidiStreamService';
 import {MockBidiStream} from '../ts/__mocks__/MockBidiStream';
+import {ServerStreamStub} from '@0cfg/rpc-common/lib/stub/ServerStreamStub';
+import {expectReply} from '@0cfg/reply-common/lib/TestHelper';
+import {MockServerStream} from '../ts/__mocks__/MockServerStream';
+import {serverStreamFactory} from '../ts/ServerStreamService';
 
 export enum TestServiceMethods {
     RequestReply = 'RequestReply',
     OtherStatusCode = 'OtherStatusCode',
     FailingMiddleware = 'FailingMiddleware',
-    PingPong = 'PingPong'
+    PingPong = 'PingPong',
+    ServerStreamMock = 'ServerStreamMock',
 }
 
 export class TestServiceStub {
@@ -40,6 +45,10 @@ export class TestServiceStub {
     public pingPongBidiStream(): BidiStreamStub<'ping', 'pong'> {
         return this.endpoint.newBidiStreamStub<'ping', 'pong'>(TestServiceMethods.PingPong);
     }
+
+    public mockServerStream(): ServerStreamStub<'init', 'mock'> {
+        return this.endpoint.newServerStreamStub<'init', 'mock'>(TestServiceMethods.ServerStreamMock);
+    }
 }
 
 
@@ -56,6 +65,8 @@ const failingMiddlewareRequestReply = new MockRequestReplyService(TestServiceMet
 
 const mockBidiStream = new MockBidiStream(TestServiceMethods.PingPong, mockServiceMiddleware);
 
+const mockServerStream = new MockServerStream(TestServiceMethods.ServerStreamMock, mockServiceMiddleware);
+
 const withMockRequestReply = RpcServerConfig.newBuilder().setPort(PORT)
     .allowAllOriginsAndHeadersAndRequests()
     .addServerMiddleware(mockServerMiddleware)
@@ -64,7 +75,9 @@ const withMockRequestReply = RpcServerConfig.newBuilder().setPort(PORT)
     .addRequestReplyService(otherStatusCodeRequestReply)
     // use constant to be able to use test class, do not do this in production code
     .addBidiStreamService(bidiStreamFactory(TestServiceMethods.PingPong,
-        () => mockBidiStream));
+        () => mockBidiStream))
+    .addServerStreamService(serverStreamFactory(TestServiceMethods.ServerStreamMock,
+        () => mockServerStream));
 
 const server = new RpcServer(withMockRequestReply.build());
 const clientSocket = new ReconnectingWebSocket('ws://localhost:' + PORT);
@@ -215,23 +228,20 @@ test('bidi stream over websocket closed by client', async () => {
     const stream = websocketStub.pingPongBidiStream();
 
     let received = 0;
-    let resolver: () => void | undefined;
 
-    const allRepliesReceived = new Promise(resolve => {
-        resolver = resolve;
+    const allRepliesReceived = new Promise<void>(resolve => {
+        stream.onMessage(async (message: 'pong') => {
+            expect(message).toEqual('pong');
+            received++;
+            if (received === 500) {
+                resolve();
+            }
+        });
     });
 
     for (let i = 0; i < 500; i++) {
         stream.send('ping');
     }
-
-    stream.onMessage(async (message: 'pong') => {
-        expect(message).toEqual('pong');
-        received++;
-        if (received === 500) {
-            resolver();
-        }
-    });
 
     await allRepliesReceived;
     stream.complete(getOk());
@@ -248,23 +258,20 @@ test('bidi stream over websocket closed by server', async () => {
     const stream = websocketStub.pingPongBidiStream();
 
     let received = 0;
-    let resolver: () => void | undefined;
 
-    const allRepliesReceived = new Promise(resolve => {
-        resolver = resolve;
+    const allRepliesReceived = new Promise<void>(resolve => {
+        stream.onMessage(async (message: 'pong') => {
+            expect(message).toEqual('pong');
+            received++;
+            if (received === 500) {
+                resolve();
+            }
+        });
     });
 
     for (let i = 0; i < 500; i++) {
         stream.send('ping');
     }
-
-    stream.onMessage(async (message: 'pong') => {
-        expect(message).toEqual('pong');
-        received++;
-        if (received === 500) {
-            resolver();
-        }
-    });
 
     await allRepliesReceived;
 
@@ -280,4 +287,19 @@ test('bidi stream over websocket closed by server', async () => {
     expect(received).toBe(500);
     expect(mockBidiStream.receivedCount).toBe(500);
     expect(mockServiceMiddleware.calledNTimes).toBe(500);
+});
+
+test('server stream over websocket closed by client', async () => {
+    const stream = websocketStub.mockServerStream();
+
+
+    const completionPromise = new Promise<Reply>(
+        resolve => stream.onCompleted(async (end: Reply) => {
+                resolve(end);
+            }
+        ));
+
+    stream.complete(getOk());
+
+    await expectReply(completionPromise).resolves.toBeOk();
 });

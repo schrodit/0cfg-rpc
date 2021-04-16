@@ -654,7 +654,7 @@ export class RpcServer<Context extends HttpContext> {
             return;
         }
 
-        if (await this.maybeCreateServerStream(serverStreams, message, mutableContext, socket)) {
+        if (await this.maybeHandleServerStreamMessage(serverStreams, message, mutableContext, socket)) {
             return;
         }
 
@@ -743,6 +743,34 @@ export class RpcServer<Context extends HttpContext> {
         return true;
     }
 
+    /**
+     * Handles complete and initialization messages to server streams.
+     * @return {@code true} only if {@param message} is a server stream message.
+     */
+    private async maybeHandleServerStreamMessage(
+        serverStreams: ServerStreamMap<Context>,
+        message: WebSocketClientMessage<JsonValue>,
+        mutableContext: Context,
+        socket: WebSocket,
+    ): Promise<boolean> {
+        if (!await this.maybeCreateServerStream(serverStreams, message, mutableContext, socket)) {
+            return false;
+        }
+
+        const stream: AnyServerStreamService<Context> = serverStreams[message.requestId]!;
+
+        if (message.method === COMPLETE_METHOD) {
+            stream.complete(Reply.createFromSerializedReply(message.args as SerializedReply));
+            delete serverStreams[message.requestId];
+            return true;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return {@code true} only if {@param message} is a bidi stream message.
+     */
     private async maybeHandleBidiStreamMessage(
         bidiStreams: BidiStreamMap<Context>,
         message: WebSocketClientMessage<JsonValue>,
@@ -750,7 +778,7 @@ export class RpcServer<Context extends HttpContext> {
         socket: WebSocket,
     ): Promise<boolean> {
         if (!has(bidiStreams[message.requestId])) {
-            return this.createBidiStream(bidiStreams, message, socket, mutableContext);
+            return this.maybeCreateBidiStream(bidiStreams, message, socket, mutableContext);
         }
 
         const stream: AnyBidiStreamService<Context> = bidiStreams[message.requestId]!;
@@ -770,7 +798,10 @@ export class RpcServer<Context extends HttpContext> {
         return true;
     }
 
-    private async createBidiStream(
+    /**
+     * @return {@code true} only if {@param message} is a bidi stream message.
+     */
+    private async maybeCreateBidiStream(
         bidiStreams: BidiStreamMap<Context>,
         message: WebSocketClientMessage<JsonValue>,
         socket: WebSocket,
@@ -855,6 +886,9 @@ export class RpcServer<Context extends HttpContext> {
         return getOk();
     }
 
+    /**
+     * @return {@code true} only if {@param message} is a message directed at a bound server stream.
+     */
     private async maybeCreateServerStream(
         serverStreams: ServerStreamMap<Context>,
         message: WebSocketClientMessage<JsonValue>,
