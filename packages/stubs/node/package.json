@@ -1,6 +1,6 @@
 {
   "name": "@0cfg/stubs-node",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Jonas Zipprick <jonas@codesphere.cloud>",
   "license": "MIT",
   "private": false,
@@ -30,8 +30,8 @@
     "ws": "^7.4.2"
   },
   "devDependencies": {
-    "@0cfg/reply-common": "^0.0.4",
-    "@0cfg/stubs-common": "^0.0.4",
+    "@0cfg/reply-common": "^0.0.5",
+    "@0cfg/stubs-common": "^0.0.5",
     "@0cfg/utils-common": "0.0.1",
     "@azure/storage-blob": "^12.1.0",
     "@types/fs-extra": "^9.0.4",

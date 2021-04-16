@@ -1,6 +1,6 @@
 {
   "name": "@0cfg/stubs-browser",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Jonas Zipprick <jonas@codesphere.cloud>",
   "license": "MIT",
   "private": false,
@@ -20,8 +20,8 @@
     "lib"
   ],
   "dependencies": {
-    "@0cfg/reply-common": "^0.0.4",
-    "@0cfg/stubs-common": "^0.0.4",
+    "@0cfg/reply-common": "^0.0.5",
+    "@0cfg/stubs-common": "^0.0.5",
     "@0cfg/utils-common": "0.0.1"
   },
   "devDependencies": {
