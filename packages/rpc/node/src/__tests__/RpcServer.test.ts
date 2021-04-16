@@ -292,6 +292,7 @@ test('bidi stream over websocket closed by server', async () => {
 test('server stream over websocket closed by client', async () => {
     const stream = websocketStub.mockServerStream();
 
+    stream.start('init');
 
     const completionPromise = new Promise<Reply>(
         resolve => stream.onCompleted(async (end: Reply) => {
