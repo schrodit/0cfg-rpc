@@ -15,10 +15,10 @@ const CONNECTION_TIMEOUT = 2 * milliSecondsInASecond;
 export class ReconnectingWebSocket extends CommonReconnectingWebSocket implements WebSocket {
 
     public readonly url: string;
-    public readonly CLOSED: number = WebSocket.CLOSED;
-    public readonly CLOSING: number = WebSocket.CLOSING;
-    public readonly CONNECTING: number = WebSocket.CONNECTING;
-    public readonly OPEN: number = WebSocket.OPEN;
+    public readonly CLOSED = WebSocket.CLOSED;
+    public readonly CLOSING = WebSocket.CLOSING;
+    public readonly CONNECTING = WebSocket.CONNECTING;
+    public readonly OPEN = WebSocket.OPEN;
     private readonly options: WebSocket.ClientOptions | undefined;
     private readonly expectedPingDelay: number;
     private readonly protocols: string | string[] | undefined;
@@ -79,8 +79,8 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
             this.socket.addEventListener('close', (ev: WebSocket.CloseEvent) => {
                 resolve(getOk());
                 clearTimeout(this.pingTimeout!);
-                if (this.isConnected() && !this.wasClosed && !ev.wasClean) {
-                    this.onDisconnect(Reply.errStatus(ev.reason));
+                if (super.isConnected() && !this.wasClosed && !ev.wasClean) {
+                    super.onDisconnect(Reply.errStatus(ev.reason));
                 }
             });
             this.socket.addEventListener('error', (ev: WebSocket.ErrorEvent) => {
@@ -154,7 +154,10 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return this.socket!.onopen;
     }
 
-    public get readyState(): number {
+    public get readyState(): typeof WebSocket.CONNECTING
+        | typeof WebSocket.OPEN
+        | typeof WebSocket.CLOSING
+        | typeof WebSocket.CLOSED {
         return this.socket?.readyState ?? this.CLOSED;
     }
 
