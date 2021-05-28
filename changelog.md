@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Removed sourcemaps from the final build artifact
 - Type incompatibility of the node implementation of ReconnectingWebSocket with ws@~7.4.0
 
 ## [0.0.5]
