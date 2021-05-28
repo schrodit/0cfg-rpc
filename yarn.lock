@@ -2,6 +2,61 @@
 # yarn lockfile v1
 
 
+"@0cfg/http-common@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@0cfg/http-common/-/http-common-0.0.6.tgz#03bc1904f0c0ced955670a7d87c8979038ea0131"
+  integrity sha512-EfTFY99QYfzcxGgj+mu4xgvnVEGgIv/07dfW8tGhrtV4qJXpSZc4OncAhxHbqo/iedy3S9eGIZr6ToHufr0XFg==
+
+"@0cfg/reply-common@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@0cfg/reply-common/-/reply-common-0.0.6.tgz#a28d7e042b176ce641576d8411b1bb5e3483f8f9"
+  integrity sha512-4fFhLP8UDF39RNMLp2EJMCCRBMh8p7T+8T4ZRyohh322rNc3CF4fEYxTwfp2tiNyQgzt0Zy1caCvFlsfQRXt4g==
+  dependencies:
+    "@0cfg/utils-common" "0.0.1"
+
+"@0cfg/rpc-common@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@0cfg/rpc-common/-/rpc-common-0.0.6.tgz#20f1cd735cec57a5ce66bc20e9818a3f38be8301"
+  integrity sha512-+y5dua2zeq4cxCY3lCOKvEZCw+IgFYY5Y0GsJLZDbHEpwaxwTcbRZOCCg3K6nRvwkEuXTAzD/faCmHax5z72jQ==
+  dependencies:
+    "@0cfg/http-common" "^0.0.6"
+    "@0cfg/reply-common" "^0.0.6"
+    "@0cfg/stubs-common" "^0.0.6"
+    cross-fetch "3.0.6"
+
+"@0cfg/stubs-common@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@0cfg/stubs-common/-/stubs-common-0.0.6.tgz#6c6dff694b551c481904795632711a2a156c1e0e"
+  integrity sha512-wagns73vkQtvJvNLMUUyMeO9InqroQOz145uCYpnDfXgB5mz5O8ApN6LyRGG0rEbcjnSXaj3Q4o9ofBO8owUqQ==
+  dependencies:
+    "@0cfg/reply-common" "^0.0.6"
+    "@0cfg/utils-common" "0.0.1"
+    "@azure/storage-blob" "^12.1.0"
+    "@google-cloud/pubsub" "^2.5.0"
+    "@types/mssql" "^6.0.4"
+    "@types/pg" "^7.14.5"
+    "@types/redis" "^2.8.27"
+    azure-storage "^2.10.3"
+    mariadb "^2.4.2"
+    mssql "^6.2.1"
+    p-queue "^6.6.1"
+    pg "~7.18.2"
+    redis "^3.0.2"
+
+"@0cfg/stubs-node@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@0cfg/stubs-node/-/stubs-node-0.0.6.tgz#08a5215bf0c5ba24ecb64b53bcd7ea82093080b0"
+  integrity sha512-4jvRZfaaRdf44eFo0rXeH5rGOj/n0JIXoRY/65JSxd0WPtmwwWkckqbVN/7OznNACqMxDMwDMnnZxO1y/5eEDg==
+  dependencies:
+    azure-storage "^2.10.3"
+    fs-extra "^9.0.1"
+    mariadb "^2.4.2"
+    mssql "^6.2.1"
+    p-queue "^6.6.1"
+    pg "~7.18.2"
+    redis "^3.0.2"
+    ws "^7.4.2"
+
 "@0cfg/utils-common@0.0.1":
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/@0cfg/utils-common/-/utils-common-0.0.1.tgz#1aa67cbe93cb30a45d5384f0234b9c815f9849be"
