@@ -36,8 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[unreleased]: https://github.com/0cfg/0cfg-rpc/compare/v0.0.7..HEAD
-[0.0.8]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.7
+[unreleased]: https://github.com/0cfg/0cfg-rpc/compare/v0.0.8..HEAD
+[0.0.8]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.8
 [0.0.7]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.7
 [0.0.5]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.5
 [0.0.2]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.2
