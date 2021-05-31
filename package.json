@@ -23,7 +23,7 @@
     "build": "lerna run build --stream",
     "dev": "node dev.js --root=packages",
     "devBuild": "node dev.js --root=packages --buildOnly",
-    "pkg" : "lerna run pkg"
+    "pkg": "lerna run pkg"
   },
   "yarnWorkspaces": true,
   "workspaces": [
