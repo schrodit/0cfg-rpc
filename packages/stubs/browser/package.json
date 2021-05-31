@@ -22,7 +22,7 @@
   "dependencies": {
     "@0cfg/reply-common": "^0.0.6",
     "@0cfg/stubs-common": "^0.0.6",
-    "@0cfg/utils-common": "0.0.1"
+    "@0cfg/utils-common": "^0.1.0"
   },
   "devDependencies": {
     "jest-websocket-mock": "^2.2.0",
