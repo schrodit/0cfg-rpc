@@ -6,7 +6,7 @@
   "author": "Elias Groll <elias@codesphere.cloud>",
   "private": true,
   "engines": {
-    "node": "14.4.0",
+    "node": ">=14.4.0",
     "npm": ">=6.14.10"
   },
   "scripts": {
