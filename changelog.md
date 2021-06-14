@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.0.9]
+
+### Improved
+
+- Updates the @0cfg/utils-common dependency
+
 ### Added
+
 - Support for node versions higher than 14.4.0 
 
 ## [0.0.8]
@@ -39,7 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[unreleased]: https://github.com/0cfg/0cfg-rpc/compare/v0.0.8..HEAD
+[unreleased]: https://github.com/0cfg/0cfg-rpc/compare/v0.0.9..HEAD
+[0.0.9]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.9
 [0.0.8]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.8
 [0.0.7]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.7
 [0.0.5]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.5

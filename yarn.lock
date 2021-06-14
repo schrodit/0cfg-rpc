@@ -57,7 +57,7 @@
     redis "^3.0.2"
     ws "^7.4.2"
 
-"@0cfg/utils-common@0.0.1", "@0cfg/utils-common@^0.0.1":
+"@0cfg/utils-common@0.0.1":
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/@0cfg/utils-common/-/utils-common-0.0.1.tgz#1aa67cbe93cb30a45d5384f0234b9c815f9849be"
   integrity sha512-vcSNpgDHUzFtMr7M7S9XqPlN6tWrpkJyx5+i07k6JfhTWvhQdOQbyPIl6ki6xQoh8QKJGGoVcw2VPOCFjqtHEw==
