@@ -2,6 +2,7 @@ import {BidiStreamStub} from '../stub/BidiStreamStub';
 import {CommonReconnectingWebSocket} from '@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket';
 import {Sequential} from '@0cfg/utils-common/lib/Sequential';
 import {WebSocketStreamStub} from './WebSocketStreamStub';
+import {MessageListener} from "./utils";
 
 export class WebSocketBidiStreamStub<ClientMessageT, ServerMessageT>
     extends WebSocketStreamStub<ClientMessageT, ServerMessageT>
@@ -13,5 +14,9 @@ export class WebSocketBidiStreamStub<ClientMessageT, ServerMessageT>
 
     public send(message: ClientMessageT): void {
         super.send(message);
+    }
+
+    public onMessage(listener: MessageListener<ServerMessageT>): void {
+        super.onMessage(listener);
     }
 }

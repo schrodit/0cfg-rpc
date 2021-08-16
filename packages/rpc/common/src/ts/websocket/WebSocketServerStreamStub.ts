@@ -2,6 +2,7 @@ import {ServerStreamStub} from '../stub/ServerStreamStub';
 import {CommonReconnectingWebSocket} from '@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket';
 import {Sequential} from '@0cfg/utils-common/lib/Sequential';
 import {WebSocketStreamStub} from './WebSocketStreamStub';
+import {MessageListener} from "./utils";
 
 export class WebSocketServerStreamStub<ClientMessageT, ServerMessageT>
     extends WebSocketStreamStub<ClientMessageT, ServerMessageT>
@@ -19,5 +20,10 @@ export class WebSocketServerStreamStub<ClientMessageT, ServerMessageT>
         }
         this.started = true;
         super.send(message);
+    }
+
+
+    public onMessage(listener: MessageListener<ServerMessageT>): void {
+        super.onMessage(listener);
     }
 }

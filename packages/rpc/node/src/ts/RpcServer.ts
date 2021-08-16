@@ -32,6 +32,7 @@ import {AnyServerStreamService, AnyServerStreamServiceFactory} from './ServerStr
 import {Middleware} from './Middleware';
 import {noOp} from '@0cfg/utils-common/lib/noOp';
 import {definedValues} from '@0cfg/utils-common/lib/definedValues';
+import {AnyClientStreamService, AnyClientStreamServiceFactory, ClientStreamService} from "./ClientStreamService";
 
 const UNKNOWN_REQUEST_ID = 0;
 
@@ -98,6 +99,7 @@ type InternalRpcServerConfig<Context extends HttpContext> = {
     requestReplyList: AnyRequestReplyService<Context>[],
     bidiStreamFactoryList: AnyBidiStreamServiceFactory<Context>[];
     serverStreamFactoryList: AnyServerStreamServiceFactory<Context>[];
+    clientStreamFactoryList: AnyClientStreamServiceFactory<Context>[];
     staticPaths: StaticPath[],
     middlewareQueue: Middleware<unknown, Context>[],
     contextFactory: ContextFactory<Context>,
@@ -111,6 +113,7 @@ const DEFAULT_CONTEXT_FACTORY_FACTORY =
 
 type BidiStreamMap<Context extends HttpContext> = { [requestId: number]: AnyBidiStreamService<Context> };
 type ServerStreamMap<Context extends HttpContext> = { [requestId: number]: AnyServerStreamService<Context> };
+type ClientStreamMap<Context extends HttpContext> = { [requestId: number]: AnyClientStreamService<Context> };
 
 /**
  * The namespace is necessary in Typescript v. 3.9.7 in order to provide a
@@ -160,6 +163,12 @@ export namespace RpcServerConfig {
          * listens for requests at ${baseUrl}/${service.getName()}.
          */
         addServerStreamService(factory: AnyServerStreamServiceFactory<Context>): Builder<Context>;
+
+        /**
+         * Bind a {@link ClientStreamService} service to the server and
+         * listens for requests at ${baseUrl}/${service.getName()}.
+         */
+        addClientStreamService(factory: AnyClientStreamServiceFactory<Context>): Builder<Context>;
 
         /**
          * Bind a {@link RequestReply} service to the server and
@@ -216,6 +225,7 @@ export class RpcServerConfig<Context extends HttpContext = HttpContext> implemen
             requestReplyList: [],
             bidiStreamFactoryList: [],
             serverStreamFactoryList: [],
+            clientStreamFactoryList: [],
             staticPaths: [],
             middlewareQueue: [],
             contextFactory: DEFAULT_CONTEXT_FACTORY_FACTORY<Context>(),
@@ -285,6 +295,14 @@ export class RpcServerConfig<Context extends HttpContext = HttpContext> implemen
         ): RpcServerConfig.Builder<Context> {
             this.reserve(factory.getName());
             this.defaultConfig.serverStreamFactoryList.push(factory);
+            return this;
+        }
+
+        public addClientStreamService(
+            factory: AnyClientStreamServiceFactory<Context>
+        ): RpcServerConfig.Builder<Context> {
+            this.reserve(factory.getName());
+            this.defaultConfig.clientStreamFactoryList.push(factory);
             return this;
         }
 
@@ -362,6 +380,7 @@ export class RpcServerConfig<Context extends HttpContext = HttpContext> implemen
     public readonly contextFactory: ContextFactory<Context>;
     public readonly bidiStreamFactoryList: AnyBidiStreamServiceFactory<Context>[];
     public readonly serverStreamFactoryList: AnyServerStreamServiceFactory<Context>[];
+    public readonly clientStreamFactoryList: AnyClientStreamServiceFactory<Context>[];
     public readonly connectionTimeout: number;
     public readonly expressApp: undefined | express.Application;
 
@@ -374,6 +393,7 @@ export class RpcServerConfig<Context extends HttpContext = HttpContext> implemen
         this.staticPaths = config.staticPaths;
         this.bidiStreamFactoryList = config.bidiStreamFactoryList;
         this.serverStreamFactoryList = config.serverStreamFactoryList;
+        this.clientStreamFactoryList = config.clientStreamFactoryList;
         this.middlewareQueue = config.middlewareQueue;
         this.contextFactory = config.contextFactory;
         this.connectionTimeout = config.connectionTimeout;
@@ -587,9 +607,10 @@ export class RpcServer<Context extends HttpContext> {
         const mutableContext = this.config.contextFactory({} as express.Request) as Context;
         const bidiStreams: BidiStreamMap<Context> = {};
         const serverStreams: ServerStreamMap<Context> = {};
+        const clientStreams: ClientStreamMap<Context> = {};
 
         socket.on(WebSocketEvent.Message, async (rawMessage: WebSocket.Data) =>
-            this.handleClientMessage(bidiStreams, serverStreams, mutableContext, rawMessage, socket));
+            this.handleClientMessage(bidiStreams, serverStreams, clientStreams, mutableContext, rawMessage, socket));
 
         await this.disconnectedOrBroken(socket);
         [...definedValues(bidiStreams), ...definedValues(serverStreams)].forEach(stream => stream.complete);
@@ -633,6 +654,7 @@ export class RpcServer<Context extends HttpContext> {
     private async handleClientMessage(
         bidiStreams: BidiStreamMap<Context>,
         serverStreams: ServerStreamMap<Context>,
+        clientStreams: ClientStreamMap<Context>,
         mutableContext: Context,
         rawMessage: WebSocket.Data,
         socket: WebSocket
@@ -655,6 +677,10 @@ export class RpcServer<Context extends HttpContext> {
         }
 
         if (await this.maybeHandleServerStreamMessage(serverStreams, message, mutableContext, socket)) {
+            return;
+        }
+
+        if (await this.maybeHandleClientStreamMessage(clientStreams, message, mutableContext, socket)) {
             return;
         }
 
@@ -684,7 +710,7 @@ export class RpcServer<Context extends HttpContext> {
             return true;
         }
 
-        this.mergeContext(mutableContext, receivedContext as Context);
+        this.mergeContext(mutableContext, receivedContext as unknown as Context);
         RpcServer.sendOk(socket, message);
         return true;
     }
@@ -827,8 +853,8 @@ export class RpcServer<Context extends HttpContext> {
 
     private async wireStreamToServer<ClientMessageT, ServerMessageT>(
         message: WebSocketClientMessage<ClientMessageT>,
-        streamMap: BidiStreamMap<Context> | ServerStreamMap<Context>,
-        stream: AnyBidiStreamService<Context> | AnyServerStreamService<Context>,
+        streamMap: BidiStreamMap<Context> | ServerStreamMap<Context> | ClientStreamMap<Context>,
+        stream: AnyBidiStreamService<Context> | AnyServerStreamService<Context> | AnyClientStreamService<Context>,
         socket: WebSocket
     ): Promise<void> {
         streamMap[message.requestId] = stream;
@@ -840,7 +866,7 @@ export class RpcServer<Context extends HttpContext> {
                 });
             stream.onCompleted(end);
         });
-        stream.setSender((toSend: ServerMessageT) => {
+        !(stream instanceof ClientStreamService) && stream.setSender((toSend: ServerMessageT) => {
             RpcServer.send(socket,
                 {
                     requestId: message.requestId,
@@ -896,7 +922,7 @@ export class RpcServer<Context extends HttpContext> {
         socket: WebSocket
     ): Promise<boolean> {
         if (has(serverStreams[message.requestId])) {
-            // Do nothing for duplicate request id's.
+            // Do nothing for duplicate request id's.6
             return true;
         }
 
@@ -912,7 +938,65 @@ export class RpcServer<Context extends HttpContext> {
         if (validation.notOk()) {
             stream.complete(validation);
         } else {
+            await stream.init(mutableContext);
             stream.start(message.args, mutableContext);
+        }
+        return true;
+    }
+
+    /**
+     * @return {@code true} only if {@param message} is a message directed at a bound client stream.
+     */
+    private async maybeHandleClientStreamMessage(
+        clientStreams: ClientStreamMap<Context>,
+        message: WebSocketClientMessage<JsonValue>,
+        mutableContext: Context,
+        socket: WebSocket
+    ): Promise<boolean> {
+        if (!has(clientStreams[message.requestId])) {
+            return this.maybeCreateClientStream(clientStreams, message, socket, mutableContext);
+        }
+
+        const stream: AnyClientStreamService<Context> = clientStreams[message.requestId]!;
+
+        if (message.method === COMPLETE_METHOD) {
+            stream.complete(Reply.createFromSerializedReply(message.args as SerializedReply));
+            delete clientStreams[message.requestId];
+            return true;
+        }
+
+        const validation = await stream.runMiddleware(message.args, mutableContext);
+        if (validation.notOk()) {
+            stream.complete(validation);
+        } else {
+            stream.onMessage(message.args, mutableContext);
+        }
+        return true;
+    }
+
+    /**
+     * @return {@code true} only if {@param message} is a bidi stream message.
+     */
+    private async maybeCreateClientStream(
+        clientStreams: ClientStreamMap<Context>,
+        message: WebSocketClientMessage<JsonValue>,
+        socket: WebSocket,
+        mutableContext: Context,
+    ): Promise<boolean> {
+        const stream = this.config.clientStreamFactoryList.find(
+            streamFactory => streamFactory.getName() === message.method)?.create();
+        if (!has(stream)) {
+            return false;
+        }
+
+        await this.wireStreamToServer(message, clientStreams, stream, socket);
+
+        const validation = await stream.runMiddleware(message.args, mutableContext);
+        if (validation.notOk()) {
+            stream.complete(validation);
+        } else {
+            await stream.init(mutableContext);
+            stream.onMessage(message.args, mutableContext);
         }
         return true;
     }

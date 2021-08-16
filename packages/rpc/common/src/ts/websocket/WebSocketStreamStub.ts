@@ -37,16 +37,16 @@ export abstract class WebSocketStreamStub<ClientMessageT, ServerMessageT> {
         this.completeListeners.push(listener);
     }
 
-    public onMessage(listener: MessageListener<ServerMessageT>): void {
-        this.messageListeners.push(listener);
-    }
-
     public complete(end: Reply): void {
         send<SerializedReply>(this.socket, {
             requestId: this.requestId,
             method: COMPLETE_METHOD,
             args: end.toSerializedReply(),
         });
+    }
+
+    protected onMessage(listener: MessageListener<ServerMessageT>): void {
+        this.messageListeners.push(listener);
     }
 
     protected send(message: ClientMessageT): void {

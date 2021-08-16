@@ -1,7 +1,7 @@
-import {BidiStreamService} from '../BidiStreamService';
+import {BidiStreamService} from '../ts/BidiStreamService';
 import {getOk, Reply} from '@0cfg/reply-common/lib/Reply';
 import {HttpContext} from '@0cfg/rpc-common/lib/HttpContext';
-import {Middleware} from '../Middleware';
+import {Middleware} from '../ts/Middleware';
 import {has} from '@0cfg/utils-common/lib/has';
 
 export class MockBidiStream extends BidiStreamService<'ping', 'pong'> {

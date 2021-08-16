@@ -14,6 +14,8 @@ import {NotImplementedError} from '@0cfg/utils-common/lib/NotImplementedError';
 import {definedValues} from '@0cfg/utils-common/lib/definedValues';
 import {execAll} from '@0cfg/utils-common/lib/execAll';
 import {has} from '@0cfg/utils-common/lib/has';
+import {ClientStreamStub} from "./ClientStreamStub";
+import {WebSocketClientStreamStub} from "../websocket/WebSocketClientStreamStub";
 
 export interface Endpoint<ContextT extends HttpContext> {
     requestReplyStub: RequestReplyStub,
@@ -21,6 +23,7 @@ export interface Endpoint<ContextT extends HttpContext> {
         => BidiStreamStub<ClientMessageT, ServerMessageT>,
     newServerStreamStub: <ArgsT, ServerMessageT>(method: string)
         => ServerStreamStub<ArgsT, ServerMessageT>,
+    newClientStreamStub: <ClientMessageT>(method: string) => ClientStreamStub<ClientMessageT>
 
     setClientContext(context: ContextT): Promise<void>;
 }
@@ -62,6 +65,10 @@ export class WebSocketEndpoint<ContextT extends HttpContext> implements Endpoint
 
     public newServerStreamStub<ArgsT, ServerMessageT>(method: string): ServerStreamStub<ArgsT, ServerMessageT> {
         return new WebSocketServerStreamStub<ArgsT, ServerMessageT>(this.socket, this.requestIdSequential, method);
+    }
+
+    public newClientStreamStub<ClientMessageT>(method: string): ClientStreamStub<ClientMessageT> {
+        return new WebSocketClientStreamStub<ClientMessageT>(this.socket, this.requestIdSequential, method);
     }
 
     public setClientContext(context: ContextT): Promise<void> {
@@ -108,6 +115,10 @@ export class HttpEndpoint<ContextT extends HttpContext> implements Endpoint<Cont
 
     public newServerStreamStub<ArgsT, ServerMessageT>(method: string):
         ServerStreamStub<ArgsT, ServerMessageT> {
+        throw new NotImplementedError();
+    }
+
+    public newClientStreamStub<ClientMessageT>(method: string): ClientStreamStub<ClientMessageT> {
         throw new NotImplementedError();
     }
 

@@ -1,7 +1,7 @@
-import {RequestReplyService} from '../RequestReplyService';
+import {RequestReplyService} from '../ts/RequestReplyService';
 import {HttpContext} from '@0cfg/rpc-common/lib/HttpContext';
 import {okStatus, Reply, ReplyPromise} from '@0cfg/reply-common/lib/Reply';
-import {Middleware} from '../Middleware';
+import {Middleware} from '../ts/Middleware';
 import {HttpStatusCode} from '@0cfg/http-common/lib/HttpStatusCode';
 import {has} from '@0cfg/utils-common/lib/has';
 
