@@ -59,7 +59,7 @@ export class TestServiceStub {
     }
 }
 
-
+const EXPECTED_MESSAGES = 1000;
 const PORT = 8080;
 const mockServiceMiddleware = new MockMiddleware(getOk(), HttpStatusCode.Ok);
 const mockServerMiddleware = new MockMiddleware(getOk(), HttpStatusCode.Ok);
@@ -245,13 +245,13 @@ test('bidi stream over websocket closed by client', async () => {
         stream.onMessage(async (message: 'pong') => {
             expect(message).toEqual('pong');
             received++;
-            if (received === 500) {
+            if (received === EXPECTED_MESSAGES) {
                 resolve();
             }
         });
     });
 
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < EXPECTED_MESSAGES; i++) {
         stream.send('ping');
     }
 
@@ -260,9 +260,9 @@ test('bidi stream over websocket closed by client', async () => {
 
     await mockBidiStream.completePromise;
 
-    expect(received).toBe(500);
-    expect(mockBidiStream.receivedCount).toBe(500);
-    expect(mockServiceMiddleware.calledNTimes).toBe(500);
+    expect(received).toBe(EXPECTED_MESSAGES);
+    expect(mockBidiStream.receivedCount).toBe(EXPECTED_MESSAGES);
+    expect(mockServiceMiddleware.calledNTimes).toBe(EXPECTED_MESSAGES);
     expect(mockBidiStream.completed).toEqual(getOk());
 });
 
@@ -275,7 +275,7 @@ test('bidi stream over websocket closed by server', async () => {
         stream.onMessage(async (message: 'pong') => {
             expect(message).toEqual('pong');
             received++;
-            if (received === 500) {
+            if (received === EXPECTED_MESSAGES) {
                 resolve();
             }
         });
@@ -283,7 +283,7 @@ test('bidi stream over websocket closed by server', async () => {
 
     const start = Date.now();
 
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < EXPECTED_MESSAGES; i++) {
         stream.send('ping');
     }
 
@@ -298,9 +298,9 @@ test('bidi stream over websocket closed by server', async () => {
     mockBidiStream.complete(getOk());
 
     await expect(completionPromise).resolves.toEqual(getOk());
-    expect(received).toBe(500);
-    expect(mockBidiStream.receivedCount).toBe(500);
-    expect(mockServiceMiddleware.calledNTimes).toBe(500);
+    expect(received).toBe(EXPECTED_MESSAGES);
+    expect(mockBidiStream.receivedCount).toBe(EXPECTED_MESSAGES);
+    expect(mockServiceMiddleware.calledNTimes).toBe(EXPECTED_MESSAGES);
 });
 
 test('server stream over websocket closed by client', async () => {
@@ -338,9 +338,9 @@ test('server stream over websocket closed by server', async () => {
 
 test('client stream over websocket closed by client', async () => {
     const stream = websocketStub.mockClientStream();
-    mockClientStream.setExpectedMessages(500);
+    mockClientStream.setExpectedMessages(EXPECTED_MESSAGES);
 
-    for (let i = 0; i < 500; i++) {
+    for(let i = 0; i < EXPECTED_MESSAGES; i++) {
         stream.send('ping');
     }
 
@@ -349,16 +349,16 @@ test('client stream over websocket closed by client', async () => {
 
     await mockClientStream.completePromise;
 
-    expect(mockBidiStream.receivedCount).toBe(500);
-    expect(mockServiceMiddleware.calledNTimes).toBe(500);
-    expect(mockBidiStream.completed).toEqual(getOk());
+    expect(mockClientStream.receivedCount).toBe(EXPECTED_MESSAGES);
+    expect(mockServiceMiddleware.calledNTimes).toBe(EXPECTED_MESSAGES);
+    expect(mockClientStream.completed).toEqual(getOk());
 });
 
 test('client stream over websocket closed by server', async () => {
     const stream = websocketStub.mockClientStream();
-    mockClientStream.setExpectedMessages(500);
+    mockClientStream.setExpectedMessages(EXPECTED_MESSAGES);
 
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < EXPECTED_MESSAGES; i++) {
         stream.send('ping');
     }
 
@@ -367,7 +367,7 @@ test('client stream over websocket closed by server', async () => {
 
     await mockClientStream.completePromise;
 
-    expect(mockBidiStream.receivedCount).toBe(500);
-    expect(mockServiceMiddleware.calledNTimes).toBe(500);
-    expect(mockBidiStream.completed).toEqual(getOk());
+    expect(mockClientStream.receivedCount).toBe(EXPECTED_MESSAGES);
+    expect(mockServiceMiddleware.calledNTimes).toBe(EXPECTED_MESSAGES);
+    expect(mockClientStream.completed).toEqual(getOk());
 });

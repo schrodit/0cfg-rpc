@@ -39,8 +39,8 @@ export class MockClientStream extends ClientStreamService<'ping'> {
     }
 
     public onMessage(message: 'ping', context: HttpContext): void {
-        console.log(this.receivedCount);
-        if (++this.receivedCount === this.expectedMessages) {
+        this.receivedCount++;
+        if (this.receivedCount === this.expectedMessages) {
             has(this.receivedResolver) && this.receivedResolver();
         }
     }
@@ -65,6 +65,4 @@ export class MockClientStream extends ClientStreamService<'ping'> {
             this.receivedResolver = resolve;
         });
     }
-
-
 }
