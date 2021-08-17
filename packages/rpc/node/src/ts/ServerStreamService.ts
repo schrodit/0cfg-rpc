@@ -3,7 +3,9 @@ import {HttpContext} from '@0cfg/rpc-common/lib/HttpContext';
 import {Completer, Sender} from './streamTypes';
 import {Reply} from '@0cfg/reply-common/lib/Reply';
 import {has} from '@0cfg/utils-common/lib/has';
+import {injectable} from "inversify";
 
+@injectable()
 export abstract class ServerStreamService<ArgsT,
     ServerMessageT,
     MutableContextT extends HttpContext = HttpContext> extends Service<ArgsT, MutableContextT> {
