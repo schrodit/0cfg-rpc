@@ -1,8 +1,8 @@
-import {ClientStreamService} from "../ts/ClientStreamService";
-import {getOk, Reply} from "@0cfg/reply-common/lib/Reply";
-import {HttpContext} from "@0cfg/rpc-common/lib/HttpContext";
-import {Middleware} from "../ts/Middleware";
-import {has} from "@0cfg/utils-common/lib/has";
+import {ClientStreamService} from '../ts/ClientStreamService';
+import {getOk, Reply} from '@0cfg/reply-common/lib/Reply';
+import {HttpContext} from '@0cfg/rpc-common/lib/HttpContext';
+import {Middleware} from '../ts/Middleware';
+import {has} from '@0cfg/utils-common/lib/has';
 
 export class MockClientStream extends ClientStreamService<'ping'> {
     private readonly name: string;
@@ -11,7 +11,7 @@ export class MockClientStream extends ClientStreamService<'ping'> {
     public receivedCount = 0;
     private startedResolver?: () => void;
     private startedPromise = new Promise<void>(resolve => {
-        this.startedResolver = resolve
+        this.startedResolver = resolve;
     });
     private expectedMessages: number = 0;
     public completePromise = new Promise<void>(resolve => {
@@ -56,10 +56,10 @@ export class MockClientStream extends ClientStreamService<'ping'> {
             this.complete(getOk());
         }
         this.completePromise = new Promise<void>(resolve => {
-            this.completeResolver = resolve
+            this.completeResolver = resolve;
         });
         this.startedPromise = new Promise<void>(resolve => {
-            this.startedResolver = resolve
+            this.startedResolver = resolve;
         });
         this.receivedPromise = new Promise<void>(resolve => {
             this.receivedResolver = resolve;

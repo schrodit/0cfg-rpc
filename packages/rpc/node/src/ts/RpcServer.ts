@@ -32,7 +32,7 @@ import {AnyServerStreamService, AnyServerStreamServiceFactory} from './ServerStr
 import {Middleware} from './Middleware';
 import {noOp} from '@0cfg/utils-common/lib/noOp';
 import {definedValues} from '@0cfg/utils-common/lib/definedValues';
-import {AnyClientStreamService, AnyClientStreamServiceFactory, ClientStreamService} from "./ClientStreamService";
+import {AnyClientStreamService, AnyClientStreamServiceFactory, ClientStreamService} from './ClientStreamService';
 
 const UNKNOWN_REQUEST_ID = 0;
 

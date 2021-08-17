@@ -4,7 +4,8 @@ import {Completer, Sender} from './streamTypes';
 import {Reply} from '@0cfg/reply-common/lib/Reply';
 import {has} from '@0cfg/utils-common/lib/has';
 
-export abstract class ClientStreamService<MessageT, MutableContextT extends HttpContext = HttpContext> extends Service<MessageT, MutableContextT> {
+export abstract class ClientStreamService<MessageT, MutableContextT extends HttpContext = HttpContext>
+    extends Service<MessageT, MutableContextT> {
 
     private completer: Completer | undefined;
 

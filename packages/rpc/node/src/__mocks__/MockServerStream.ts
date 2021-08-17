@@ -13,7 +13,7 @@ export class MockServerStream extends ServerStreamService<'init', 'mock'> {
     public sendCount = 0;
     private startedResolver?: () => void;
     private startedPromise = new Promise<void>(resolve => {
-        this.startedResolver = resolve
+        this.startedResolver = resolve;
     });
     public completePromise = new Promise<void>(resolve => {
         this.completeResolver = resolve;
@@ -51,10 +51,10 @@ export class MockServerStream extends ServerStreamService<'init', 'mock'> {
         }
         has(this.sendInterval) && clearInterval(this.sendInterval);
         this.completePromise = new Promise<void>(resolve => {
-            this.completeResolver = resolve
+            this.completeResolver = resolve;
         });
         this.startedPromise = new Promise<void>(resolve => {
-            this.startedResolver = resolve
+            this.startedResolver = resolve;
         });
     }
 }

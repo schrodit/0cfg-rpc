@@ -14,9 +14,9 @@ import {ServerStreamStub} from '@0cfg/rpc-common/lib/stub/ServerStreamStub';
 import {expectReply} from '@0cfg/reply-common/lib/TestHelper';
 import {MockServerStream} from '../__mocks__/MockServerStream';
 import {serverStreamFactory} from '../ts/ServerStreamService';
-import {MockClientStream} from "../__mocks__/MockClientStream";
-import {clientStreamFactory} from "../ts/ClientStreamService";
-import {ClientStreamStub} from "@0cfg/rpc-common/lib/stub/ClientStreamStub";
+import {MockClientStream} from '../__mocks__/MockClientStream';
+import {clientStreamFactory} from '../ts/ClientStreamService';
+import {ClientStreamStub} from '@0cfg/rpc-common/lib/stub/ClientStreamStub';
 
 export enum TestServiceMethods {
     RequestReply = 'RequestReply',

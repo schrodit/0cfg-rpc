@@ -14,8 +14,8 @@ import {NotImplementedError} from '@0cfg/utils-common/lib/NotImplementedError';
 import {definedValues} from '@0cfg/utils-common/lib/definedValues';
 import {execAll} from '@0cfg/utils-common/lib/execAll';
 import {has} from '@0cfg/utils-common/lib/has';
-import {ClientStreamStub} from "./ClientStreamStub";
-import {WebSocketClientStreamStub} from "../websocket/WebSocketClientStreamStub";
+import {ClientStreamStub} from './ClientStreamStub';
+import {WebSocketClientStreamStub} from '../websocket/WebSocketClientStreamStub';
 
 export interface Endpoint<ContextT extends HttpContext> {
     requestReplyStub: RequestReplyStub,
