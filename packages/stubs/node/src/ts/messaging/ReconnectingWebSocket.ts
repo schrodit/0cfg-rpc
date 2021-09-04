@@ -2,7 +2,6 @@ import {
     CommonReconnectingWebSocket,
     NotYetConnectedError,
 } from '@0cfg/stubs-common/lib/messaging/CommonReconnectingWebSocket';
-
 import {errStatus, getOk, Reply} from '@0cfg/reply-common/lib/Reply';
 import {has} from '@0cfg/utils-common/lib/has';
 import {ReconnectConfig} from '@0cfg/stubs-common/lib/ReconnectingClient';
@@ -90,17 +89,17 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         });
     }
 
-    public get binaryType(): string {
+    public get binaryType(): typeof WebSocket.prototype.binaryType{
         this.throwIfNotYetConnected();
         return this.socket!.binaryType;
     }
 
-    public get bufferedAmount(): number {
+    public get bufferedAmount(): typeof WebSocket.prototype.bufferedAmount {
         this.throwIfNotYetConnected();
         return this.socket!.bufferedAmount;
     }
 
-    public get extensions(): string {
+    public get extensions(): typeof WebSocket.prototype.extensions{
         this.throwIfNotYetConnected();
         return this.socket!.extensions;
     }

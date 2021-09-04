@@ -20,25 +20,25 @@
     "lib"
   ],
   "dependencies": {
-    "@0cfg/reply-common": "^0.0.11",
-    "@0cfg/stubs-common": "^0.0.11",
+    "@0cfg/reply-common": "0.0.11",
+    "@0cfg/stubs-common": "0.0.11",
     "@0cfg/utils-common": "0.1.2",
-    "azure-storage": "^2.10.3",
-    "fs-extra": "^9.0.1",
-    "mariadb": "^2.4.2",
-    "mssql": "^6.2.1",
-    "p-queue": "^6.6.1",
-    "pg": "~7.18.2",
-    "redis": "^3.0.2",
-    "ws": "^7.4.2"
+    "azure-storage": "2.10.3",
+    "fs-extra": "9.0.1",
+    "mariadb": "2.4.2",
+    "mssql": "6.2.1",
+    "p-queue": "6.6.1",
+    "pg": "7.18.2",
+    "redis": "3.0.2",
+    "ws": "7.4.2"
   },
   "devDependencies": {
-    "@azure/storage-blob": "^12.1.0",
-    "@types/fs-extra": "^9.0.4",
-    "@types/mssql": "^6.0.4",
-    "@types/pg": "^7.14.5",
-    "@types/redis": "^2.8.27",
-    "@types/ws": "^7.4.0"
+    "@azure/storage-blob": "12.1.0",
+    "@types/fs-extra": "9.0.4",
+    "@types/mssql": "6.0.4",
+    "@types/pg": "7.14.5",
+    "@types/redis": "2.8.27",
+    "@types/ws": "7.4.0"
   },
   "gitHead": "a97dc31a2c8532761c234ee1ccbf74cf4c30aeff",
   "publishConfig": {
