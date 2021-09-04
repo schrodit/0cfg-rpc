@@ -1,6 +1,6 @@
 {
   "name": "@0cfg/http-common",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "author": "Elias Groll <elias@codesphere.cloud>",
   "license": "MIT",
   "private": false,
