@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixed
+
+- Parameter type
+
 ## [0.0.9]
 
 ### Improved
@@ -15,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for node versions higher than 14.4.0 
+- Support for node versions higher than 14.4.0
 
 ## [0.0.8]
 
@@ -38,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.2]
 
-### Added 
+### Added
 
 - Reconnecting Websockets now keep event listeners added even after reconnects.
 
