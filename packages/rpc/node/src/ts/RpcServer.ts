@@ -684,14 +684,14 @@ export class RpcServer<Context extends HttpContext> {
             return true;
         }
 
-        this.mergeContext(mutableContext, receivedContext as Context);
+        this.mergeContext(mutableContext, receivedContext);
         RpcServer.sendOk(socket, message);
         return true;
     }
 
     private mergeContext(
         target: Context,
-        src: Context
+        src: HttpContext
     ) {
         Object.assign(target, src);
         for (const headerName in target.requestHeaders) {
