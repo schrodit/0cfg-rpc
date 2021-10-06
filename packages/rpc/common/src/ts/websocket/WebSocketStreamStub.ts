@@ -51,7 +51,7 @@ export abstract class WebSocketStreamStub<ClientMessageT, ServerMessageT> {
 
     protected send(message: ClientMessageT): void {
         if (this.completed) {
-            throw new Error(`Can not send messages on a completed bidi stream (requestId: ${this.requestId}).`);
+            throw new Error(`Can not send messages on a completed stream (requestId: ${this.requestId}).`);
         }
 
         send(this.socket, {

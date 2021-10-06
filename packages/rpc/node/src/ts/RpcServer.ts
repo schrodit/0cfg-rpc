@@ -612,11 +612,11 @@ export class RpcServer<Context extends HttpContext> {
         socket.on(WebSocketEvent.Message, async (rawMessage: WebSocket.Data) =>
             this.handleClientMessage(bidiStreams, serverStreams, clientStreams, mutableContext, rawMessage, socket));
 
-        await this.disconnectedOrBroken(socket);
+        await this.waitUntilDisconnectedOrBroken(socket);
         [...definedValues(bidiStreams), ...definedValues(serverStreams)].forEach(stream => stream.complete);
     }
 
-    private async disconnectedOrBroken(socket: WebSocket): Promise<Reply> {
+    private async waitUntilDisconnectedOrBroken(socket: WebSocket): Promise<Reply> {
         let isAlive = true;
         let propagateDisconnect: ((reply: Reply) => void) | undefined = undefined;
         const awaitableDisconnect = new Promise<Reply>(resolve => {

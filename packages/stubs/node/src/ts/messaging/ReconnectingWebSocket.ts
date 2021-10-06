@@ -19,7 +19,6 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
     public readonly CONNECTING = WebSocket.CONNECTING;
     public readonly OPEN = WebSocket.OPEN;
     private readonly options: WebSocket.ClientOptions | undefined;
-    private readonly expectedPingDelay: number;
     private readonly protocols: string | string[] | undefined;
     private readonly eventListeners:
         { [eventType: string]: (() => void)[] } = {
@@ -36,8 +35,6 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
      * From https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
      * Note that this api differs from the WebSocket implementation in the way that {@link connect} needs to be called
      * to establish a connection.
-     * @param expectedPingDelay Sets expected ping delay in milliseconds after which a connection
-     * is considered broken (and will be closed).
      * Note that the delay should be equal to the interval at which your server
      * sends out pings plus a conservative assumption of the latency.
      */
@@ -45,13 +42,11 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         url: string,
         protocols?: string | string[],
         options?: ClientOptions,
-        expectedPingDelay: number = 6000,
         reconnectConfig: ReconnectConfig = {
             reconnectTimeout: 2000,
             maxReconnects: Number.MAX_SAFE_INTEGER,
         }) {
         super(reconnectConfig);
-        this.expectedPingDelay = expectedPingDelay;
         this.url = url;
         this.options = options;
         this.protocols = protocols;
@@ -66,7 +61,6 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
                 CONNECTION_TIMEOUT
             );
             this.socket.on('open', () => {
-                this.heartbeat();
                 clearTimeout(timeout);
                 for (const eventType in this.eventListeners) {
                     this.eventListeners[eventType]
@@ -74,7 +68,6 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
                 }
                 resolve(getOk());
             });
-            this.socket.on('ping', () => this.heartbeat);
             this.socket.addEventListener('close', (ev: WebSocket.CloseEvent) => {
                 resolve(getOk());
                 clearTimeout(this.pingTimeout!);
@@ -89,7 +82,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         });
     }
 
-    public get binaryType(): typeof WebSocket.prototype.binaryType{
+    public get binaryType(): typeof WebSocket.prototype.binaryType {
         this.throwIfNotYetConnected();
         return this.socket!.binaryType;
     }
@@ -99,7 +92,7 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         return this.socket!.bufferedAmount;
     }
 
-    public get extensions(): typeof WebSocket.prototype.extensions{
+    public get extensions(): typeof WebSocket.prototype.extensions {
         this.throwIfNotYetConnected();
         return this.socket!.extensions;
     }
@@ -392,15 +385,6 @@ export class ReconnectingWebSocket extends CommonReconnectingWebSocket implement
         if (!has(this.socket)) {
             throw new NotYetConnectedError();
         }
-    }
-
-    private heartbeat(): void {
-        this.pingTimeout && clearTimeout(this.pingTimeout);
-        // Use `WebSocket#terminate()`, which immediately destroys the connection,
-        // instead of `WebSocket#close()`, which waits for the close timer.
-        this.pingTimeout = setTimeout(() => {
-            this.terminate();
-        }, this.expectedPingDelay);
     }
 
 }
