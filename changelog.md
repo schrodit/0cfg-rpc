@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Increase the reconnecting websocket connection timeout.
+
 ## [0.0.9]
 
 ### Improved
