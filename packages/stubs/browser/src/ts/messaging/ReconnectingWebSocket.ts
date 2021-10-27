@@ -10,7 +10,7 @@ import {milliSecondsInASecond} from '@0cfg/utils-common/lib/timeSpan';
 /**
  * In ms
  */
-const CONNECTION_TIMEOUT = 2 * milliSecondsInASecond;
+const CONNECTION_TIMEOUT = 10 * milliSecondsInASecond;
 
 /**
  * A Wrapper for WebSocket (compatible with the browser WebSocket interface) that automatically handles reconnection.
