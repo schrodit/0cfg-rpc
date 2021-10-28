@@ -38,6 +38,7 @@ export const DEFAULT_PORT = 3000;
 export const DEFAULT_BASE_URL = '/';
 const MIN_PORT_ALLOWED = 1025;
 const MAX_PORT_ALLOWED = 65535;
+const KEEPALIVE_PING_TIMEOUT = 4 * milliSecondsInASecond;
 
 const SUPPORTED_CONTENT_TYPES = ['text/plain', 'application/json'];
 
@@ -590,11 +591,11 @@ export class RpcServer<Context extends HttpContext> {
         socket.on(WebSocketEvent.Message, async (rawMessage: WebSocket.Data) =>
             this.handleClientMessage(bidiStreams, serverStreams, mutableContext, rawMessage, socket));
 
-        await this.handleDisconnectedOrBroken(socket);
+        await this.keepAliveAndTerminateIfBroken(socket);
         [...definedValues(bidiStreams), ...definedValues(serverStreams)].forEach(stream => stream.complete);
     }
 
-    private async handleDisconnectedOrBroken(socket: WebSocket): Promise<Reply> {
+    private async keepAliveAndTerminateIfBroken(socket: WebSocket): Promise<Reply> {
         let isAlive = true;
         let propagateDisconnect: ((reply: Reply) => void) | undefined = undefined;
         const awaitableDisconnect = new Promise<Reply>(resolve => {
@@ -606,8 +607,9 @@ export class RpcServer<Context extends HttpContext> {
             isAlive = true;
         });
 
-        // Ping at least once every second to keep the socket connection alive.
-        const pingInterval = setInterval(() => socket.ping(), milliSecondsInASecond);
+        // Ping at least once every two seconds to keep the socket connection alive.
+        const pingInterval = setInterval(() => socket.ping(), KEEPALIVE_PING_TIMEOUT);
+        // Ping every connection timeout to check for disconnection
         const liveCheckInterval = setInterval(() => {
             if (!isAlive) {
                 clearInterval(liveCheckInterval);
