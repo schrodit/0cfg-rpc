@@ -2,6 +2,7 @@ import http from 'http';
 import WebSocket from 'ws';
 import {ReconnectingWebSocket} from '../ts/messaging/ReconnectingWebSocket';
 import {wait} from '@0cfg/utils-common/lib/wait';
+import {has} from '@0cfg/utils-common/lib/has';
 
 const servers: Record<number, http.Server> = {};
 
@@ -37,17 +38,31 @@ test('connects', async () => {
     webSocketServer.close();
 });
 
-const setupSocketAndListeners = async (connectMock: jest.Mock, closedMock: jest.Mock,
-                                       webSocketServer: WebSocket.Server): Promise<ReconnectingWebSocket> => {
-    webSocketServer.on('connection', connectMock);
+type ListenerMocks = {
+    serverConnect?: jest.Mock,
+    clientMessage?: jest.Mock,
+    serverMessage?: jest.Mock,
+    clientClose?: jest.Mock,
+    serverClose?: jest.Mock,
+}
+
+const setupSocketAndListeners = (listenerMocks: ListenerMocks,
+                                 webSocketServer: WebSocket.Server): ReconnectingWebSocket => {
+    const {serverConnect, clientMessage, serverMessage, clientClose, serverClose} = listenerMocks;
+    webSocketServer.on('connection', socket => {
+        has(serverConnect) && serverConnect();
+        has(serverMessage) && socket.on('message', serverMessage);
+        has(serverClose) && socket.on('close', serverClose);
+        // Start the keep alive ping
+        setInterval(() => socket.ping(), 4000);
+    });
     const ws = new ReconnectingWebSocket('ws://localhost:' + getPort(),
-        undefined, undefined, 100, {
+        undefined, undefined, undefined, {
             maxReconnects: Number.MAX_SAFE_INTEGER,
             reconnectTimeout: 200,
         });
-    ws.addEventListener('close', () => closedMock());
-    await ws.connect();
-    await ws.resolveWhenConnected();
+    has(clientClose) && ws.addEventListener('close', clientClose);
+    has(clientMessage) && ws.onMessage(clientMessage);
     return ws;
 };
 
@@ -60,10 +75,12 @@ const openWebSocketServer = async (connectMock: jest.Mock): Promise<WebSocket.Se
 
 test('reconnects', async () => {
     let webSocketServer = getWebSocketServer();
-    const connectMock = jest.fn();
-    const closedMock = jest.fn();
+    const serverConnect = jest.fn();
+    const clientClose = jest.fn();
 
-    const ws = await setupSocketAndListeners(connectMock, closedMock, webSocketServer);
+    const ws = setupSocketAndListeners({serverConnect, clientClose}, webSocketServer);
+    await ws.connect();
+    await ws.resolveWhenConnected();
 
     const close: Promise<never> = new Promise(resolve => ws.addEventListener('close', resolve));
     webSocketServer.close();
@@ -71,22 +88,24 @@ test('reconnects', async () => {
     await close;
 
     wait(500).then(async () => {
-        webSocketServer = await openWebSocketServer(connectMock);
+        webSocketServer = await openWebSocketServer(serverConnect);
     });
 
     await ws.resolveWhenConnected();
 
-    expect(connectMock).toBeCalledTimes(2);
-    expect(closedMock).toBeCalledTimes(2);
+    expect(serverConnect).toBeCalledTimes(2);
+    expect(clientClose).toBeCalledTimes(2);
+    ws.terminate();
 });
 
 test('reconnects multiple times', async () => {
     let webSocketServer = getWebSocketServer();
-    const connectMock = jest.fn();
-    const closedMock = jest.fn();
+    const serverConnect = jest.fn();
+    const clientClose = jest.fn();
 
-    const ws = await setupSocketAndListeners(connectMock, closedMock, webSocketServer);
-
+    const ws = setupSocketAndListeners({serverConnect, clientClose}, webSocketServer);
+    await ws.connect();
+    await ws.resolveWhenConnected();
     for (let i = 0; i < 5; i++) {
         const close: Promise<never> = new Promise(resolve => ws.addEventListener('close', resolve));
         webSocketServer.close();
@@ -94,10 +113,31 @@ test('reconnects multiple times', async () => {
         await close;
 
         await wait(500);
-        webSocketServer = await openWebSocketServer(connectMock);
+        webSocketServer = await openWebSocketServer(serverConnect);
         await ws.resolveWhenConnected();
     }
 
-    expect(connectMock).toBeCalledTimes(6);
-    expect(closedMock).toBeCalledTimes(6);
+    expect(serverConnect).toBeCalledTimes(6);
+    expect(clientClose).toBeCalledTimes(6);
+    ws.terminate();
+});
+
+test('connection stays open', async () => {
+    jest.setTimeout(11000);
+    const listenerMocks = {
+        clientConnect: jest.fn(),
+        serverConnect: jest.fn(),
+        clientClose: jest.fn(),
+        serverClose: jest.fn(),
+    };
+    const {serverConnect, clientConnect, clientClose, serverClose} = listenerMocks;
+    const webSocketServer = getWebSocketServer();
+    const ws = setupSocketAndListeners(listenerMocks, webSocketServer);
+    await ws.connect();
+    await ws.resolveWhenConnected();
+    await wait(10000);
+    expect(serverConnect).toBeCalledTimes(1);
+    expect(clientClose).toBeCalledTimes(0);
+    expect(serverClose).toBeCalledTimes(0);
+    ws.terminate();
 });

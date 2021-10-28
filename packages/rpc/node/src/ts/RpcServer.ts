@@ -596,31 +596,33 @@ export class RpcServer<Context extends HttpContext> {
     }
 
     private async keepAliveAndTerminateIfBroken(socket: WebSocket): Promise<Reply> {
-        let isAlive = true;
         let propagateDisconnect: ((reply: Reply) => void) | undefined = undefined;
         const awaitableDisconnect = new Promise<Reply>(resolve => {
             propagateDisconnect = resolve;
         });
 
+        // in ms
+        let lastPingTime: number | undefined;
+        let lastPongTime: number | undefined;
         // Client heartbeat
-        socket.on('pong', () => {
-            isAlive = true;
-        });
-
+        socket.on('pong', () => lastPongTime = Date.now());
         // Ping at least once every two seconds to keep the socket connection alive.
-        const pingInterval = setInterval(() => socket.ping(), KEEPALIVE_PING_TIMEOUT);
+        const pingInterval = setInterval(() => {
+            socket.ping();
+            lastPingTime = Date.now();
+        }, KEEPALIVE_PING_TIMEOUT);
+
         // Ping every connection timeout to check for disconnection
         const liveCheckInterval = setInterval(() => {
-            if (!isAlive) {
+            const pingDelay =  (lastPongTime ?? Date.now()) - (lastPingTime ?? Date.now());
+            if (pingDelay >= this.config.connectionTimeout) {
+                clearInterval(pingInterval);
                 clearInterval(liveCheckInterval);
                 socket.terminate();
-                propagateDisconnect!(
-                    disconnectedDueToTimeout(this.config.connectionTimeout));
+                propagateDisconnect!(disconnectedDueToTimeout(pingDelay));
                 return;
             }
-            isAlive = false;
-            socket.ping();
-        }, this.config.connectionTimeout);
+        }, milliSecondsInASecond);
 
         const gracefulDisconnect = () => {
             clearInterval(liveCheckInterval);
