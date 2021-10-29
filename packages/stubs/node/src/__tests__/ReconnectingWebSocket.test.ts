@@ -8,7 +8,7 @@ const servers: Record<number, http.Server> = {};
 
 const getPort = () => 3000 + Number.parseInt(process.env.JEST_WORKER_ID!);
 
-const getWebSocketServer = () => new WebSocket.Server({server: servers[getPort()]});
+const createWebSocketServer = () => new WebSocket.Server({server: servers[getPort()]});
 
 const openServer = async () => {
     const port = getPort();
@@ -28,7 +28,7 @@ beforeEach(openServer);
 afterEach(closeServer);
 
 test('connects', async () => {
-    const webSocketServer = getWebSocketServer();
+    const webSocketServer = createWebSocketServer();
     const connect = jest.fn();
     webSocketServer.on('connection', connect);
     const ws = new ReconnectingWebSocket('ws://localhost:' + getPort());
@@ -49,13 +49,17 @@ type ListenerMocks = {
 const setupSocketAndListeners = (listenerMocks: ListenerMocks,
                                  webSocketServer: WebSocket.Server): ReconnectingWebSocket => {
     const {serverConnect, clientMessage, serverMessage, clientClose, serverClose} = listenerMocks;
+
+    let pingInterval: NodeJS.Timeout;
     webSocketServer.on('connection', socket => {
         has(serverConnect) && serverConnect();
         has(serverMessage) && socket.on('message', serverMessage);
         has(serverClose) && socket.on('close', serverClose);
         // Start the keep alive ping
-        setInterval(() => socket.ping(), 4000);
+        pingInterval = setInterval(() => socket.ping(), 4000);
     });
+    webSocketServer.on('close', () => clearInterval(pingInterval));
+
     const ws = new ReconnectingWebSocket('ws://localhost:' + getPort(),
         undefined, undefined, undefined, {
             maxReconnects: Number.MAX_SAFE_INTEGER,
@@ -68,13 +72,13 @@ const setupSocketAndListeners = (listenerMocks: ListenerMocks,
 
 const openWebSocketServer = async (connectMock: jest.Mock): Promise<WebSocket.Server> => {
     await openServer();
-    const webSocketServer = getWebSocketServer();
+    const webSocketServer = createWebSocketServer();
     webSocketServer.on('connection', connectMock);
     return webSocketServer;
 };
 
 test('reconnects', async () => {
-    let webSocketServer = getWebSocketServer();
+    let webSocketServer = createWebSocketServer();
     const serverConnect = jest.fn();
     const clientClose = jest.fn();
 
@@ -99,7 +103,7 @@ test('reconnects', async () => {
 });
 
 test('reconnects multiple times', async () => {
-    let webSocketServer = getWebSocketServer();
+    let webSocketServer = createWebSocketServer();
     const serverConnect = jest.fn();
     const clientClose = jest.fn();
 
@@ -131,7 +135,7 @@ test('connection stays open', async () => {
         serverClose: jest.fn(),
     };
     const {serverConnect, clientConnect, clientClose, serverClose} = listenerMocks;
-    const webSocketServer = getWebSocketServer();
+    const webSocketServer = createWebSocketServer();
     const ws = setupSocketAndListeners(listenerMocks, webSocketServer);
     await ws.connect();
     await ws.resolveWhenConnected();
@@ -140,4 +144,5 @@ test('connection stays open', async () => {
     expect(clientClose).toBeCalledTimes(0);
     expect(serverClose).toBeCalledTimes(0);
     ws.terminate();
+    webSocketServer.close();
 });
