@@ -602,27 +602,23 @@ export class RpcServer<Context extends HttpContext> {
         });
 
         // in ms
-        let lastPingTime: number | undefined;
-        let lastPongTime: number | undefined;
+        let lastPongTime = Date.now();
         // Client heartbeat
         socket.on('pong', () => lastPongTime = Date.now());
         // Ping at least once every two seconds to keep the socket connection alive.
-        const pingInterval = setInterval(() => {
-            socket.ping();
-            lastPingTime = Date.now();
-        }, KEEPALIVE_PING_TIMEOUT);
+        const pingInterval = setInterval(() => socket.ping(), KEEPALIVE_PING_TIMEOUT);
 
         // Ping every connection timeout to check for disconnection
         const liveCheckInterval = setInterval(() => {
-            const pingDelay =  (lastPongTime ?? Date.now()) - (lastPingTime ?? Date.now());
-            if (pingDelay >= this.config.connectionTimeout) {
+            const lastPongDelay = Date.now() - lastPongTime;
+            if (lastPongDelay >= this.config.connectionTimeout) {
                 clearInterval(pingInterval);
                 clearInterval(liveCheckInterval);
                 socket.terminate();
-                propagateDisconnect!(disconnectedDueToTimeout(pingDelay));
+                propagateDisconnect!(disconnectedDueToTimeout(lastPongDelay));
                 return;
             }
-        }, milliSecondsInASecond);
+        }, this.config.connectionTimeout / 10);
 
         const gracefulDisconnect = () => {
             clearInterval(liveCheckInterval);
