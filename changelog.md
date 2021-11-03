@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.1.0] - 2021-11-03
+
 - Increase the reconnecting websocket connection timeout.
 - Added support of log output in JSON format
 - The RpcServer now pings websocket clients every second.
@@ -50,7 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[unreleased]: https://github.com/0cfg/0cfg-rpc/compare/v0.0.9..HEAD
+[unreleased]: https://github.com/0cfg/0cfg-rpc/compare/v0.1.0..HEAD
+[0.1.0]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.1.0
 [0.0.9]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.9
 [0.0.8]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.8
 [0.0.7]: https://github.com/0cfg/0cfg-rpc/releases/tag/v0.0.7
