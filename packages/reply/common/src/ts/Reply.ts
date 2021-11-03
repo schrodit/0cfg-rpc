@@ -330,11 +330,9 @@ export class Reply<T = never, S extends Status = Status> {
      */
     public log(...tags: LogTag[]): this {
         if (this.notOk()) {
-            log(this.stack, Reply.logAsJson, this.getErrorMessage(), Status.Error, ...tags);
-            // eslint-disable-next-line no-console
-            Reply.logAsJson && console.log(this.stack);
+            log(this.getErrorMessage(), Reply.logAsJson, Status.Error, this.stack, ...tags);
         } else {
-            log(this.stack, Reply.logAsJson, JSON.stringify(this.getValue()), this.serializedReply.code, ...tags);
+            log(JSON.stringify(this.getValue()), Reply.logAsJson, this.serializedReply.code, this.stack, ...tags);
         }
         return this;
     }

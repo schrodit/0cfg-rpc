@@ -1,11 +1,21 @@
 import {Reply, SerializedReply, Status} from '../ts/Reply';
 
 const message = 'This is a test';
+const message2 = 'Das isch en anerer Tescht.';
 type TestType = { test: string };
 const data: TestType = {test: message};
 const unparseable = {test: 'bla bla bla'};
 const ERR_STATUS: Reply<null> = Reply.errStatus(message);
-const ERR_STATUS2: Reply<null> = Reply.errStatus('Das isch en anerer Tescht.');
+const ERR_STATUS2: Reply<null> = Reply.errStatus(message2);
+const regExpJsonLogTest = (message: string) => new RegExp(['{',
+    '\\"date\\":\\"\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?',
+    '(([+-]\\d\\d:\\d\\d)|Z)?\\",\\"stack\\":\\"[^\\"]*\\",',
+    '\\"message\\":\\"', message, '\\",',
+    '\\"code\\":\\"[^\"]*\\",\\"tags":\\[\\]}'].join(''));
+const regExpPlainLogTest = (message: string) => new RegExp(['\\[Error,',
+    '\\s\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?',
+    '(([+-]\\d\\d:\\d\\d)|Z)?\]:\\s',
+    message].join(''));
 
 test('logDoesNotThrow', () => {
     expect(Reply.getOk().log()).toEqual(Reply.getOk());
@@ -17,37 +27,21 @@ test('logDoesNotThrow', () => {
 test('jsonLogTest', () => {
     Reply.setLogAsJson(true);
     const consoleSpy = jest.spyOn(console, 'log');
-    const regExp1 = new RegExp(['{',
-        '\\"date\\":\\"\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?',
-        '(([+-]\\d\\d:\\d\\d)|Z)?\\",\\"stack\\":\\"[^\\"]*\\",',
-        '\\"message\\":\\"', message, '\\",',
-        '\\"code\\":\\"[^\"]*\\",\\"tags":\\[\\]}'].join(''));
-    const regExp2 = new RegExp(['{',
-        '\\"date\\":\\"\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?',
-        '(([+-]\\d\\d:\\d\\d)|Z)?\\",',
-        '\\"stack\\":\\"[^\\"]*\\",',
-        '\\"message\\":\\"Das isch en anerer Tescht.\\",',
-        '\\"code\\":\\"[^\"]*\\",\\"tags":\\[\\]}'].join(''));
     ERR_STATUS.log();
-    expect(consoleSpy.mock.calls[0][0]).toMatch(regExp1);
+    expect(consoleSpy.mock.calls[0][0]).toMatch(regExpJsonLogTest(message));
     ERR_STATUS2.log();
-    expect(consoleSpy.mock.calls[2][0]).toMatch(regExp2);
+    expect(consoleSpy.mock.calls[1][0]).toMatch(regExpJsonLogTest(message2));
+    consoleSpy.mockRestore();
 });
 
 test('plainLogTest', () => {
     Reply.setLogAsJson(false);
     const consoleSpy = jest.spyOn(console, 'log');
-    const regExp3 = new RegExp(['\\[Error,',
-        '\\s\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?',
-        '(([+-]\\d\\d:\\d\\d)|Z)?\]:\\s',
-        message].join(''));
-    const regExp4 = new RegExp(['\\[Error,',
-        '\\s\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?',
-        '(([+-]\\d\\d:\\d\\d)|Z)?\]:\\sDas isch en anerer Tescht.'].join(''));
     ERR_STATUS.log();
-    expect(consoleSpy.mock.calls[4][0]).toMatch(regExp3);
+    expect(consoleSpy.mock.calls[0][0]).toMatch(regExpPlainLogTest(message));
     ERR_STATUS2.log();
-    expect(consoleSpy.mock.calls[5][0]).toMatch(regExp4);
+    expect(consoleSpy.mock.calls[1][0]).toMatch(regExpPlainLogTest(message2));
+    consoleSpy.mockRestore();
 });
 
 test('okAndNotOk', () => {
