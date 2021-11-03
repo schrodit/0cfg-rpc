@@ -224,7 +224,7 @@ export class Reply<T = never, S extends Status = Status> {
         return Reply.errStatus('The reply could not be parsed.');
     }
 
-    public static setLogAsJson (logAsJson : boolean):void {
+    public static setLogAsJson(logAsJson : boolean): void {
         Reply.logAsJson = logAsJson;
     }
 
