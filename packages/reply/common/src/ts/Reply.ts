@@ -65,6 +65,7 @@ export class Reply<T = never, S extends Status = Status> {
     } as SerializedReply<never, Status.Ok>, undefined);
     private readonly serializedReply: SerializedReply<T, S>
     private readonly stack: S extends Status.Ok ? undefined : string;
+    private static logAsJson: boolean = false;
 
     /**
      * Never change to public, use composition (wrap a Reply) instead of inheritance.
@@ -223,6 +224,10 @@ export class Reply<T = never, S extends Status = Status> {
         return Reply.errStatus('The reply could not be parsed.');
     }
 
+    public static setLogAsJson(logAsJson : boolean): void {
+        Reply.logAsJson = logAsJson;
+    }
+
     /**
      * True if {@link code} equal to {@link Status.OK}.
      *
@@ -325,11 +330,9 @@ export class Reply<T = never, S extends Status = Status> {
      */
     public log(...tags: LogTag[]): this {
         if (this.notOk()) {
-            log(this.getErrorMessage(), Status.Error, ...tags);
-            // eslint-disable-next-line no-console
-            console.log(this.stack);
+            log(this.getErrorMessage(), Reply.logAsJson, Status.Error, this.stack, ...tags);
         } else {
-            log(JSON.stringify(this.getValue()), this.serializedReply.code, ...tags);
+            log(JSON.stringify(this.getValue()), Reply.logAsJson, this.serializedReply.code, this.stack, ...tags);
         }
         return this;
     }
