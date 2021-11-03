@@ -15,21 +15,39 @@ test('logDoesNotThrow', () => {
 });
 
 test('jsonLogTest', () => {
-    Reply.setLogAsJson(true)
+    Reply.setLogAsJson(true);
     const consoleSpy = jest.spyOn(console, 'log');
-    ERR_STATUS.log(); 
-    expect(consoleSpy.mock.calls[0][0]).toMatch(new RegExp(`{\\"date\\":\\"\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?(([+-]\\d\\d:\\d\\d)|Z)?\\",\\"stack\\":\\"[^\\"]*\\",\\"message\\":\\"${message}\\",\\"code\\":\\"[^\"]*\\",\\"tags":\\[\\]}`));
+    const regExp1 = new RegExp(['{',
+        '\\"date\\":\\"\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?',
+        '(([+-]\\d\\d:\\d\\d)|Z)?\\",\\"stack\\":\\"[^\\"]*\\",',
+        '\\"message\\":\\"', message, '\\",',
+        '\\"code\\":\\"[^\"]*\\",\\"tags":\\[\\]}'].join(''));
+    const regExp2 = new RegExp(['{',
+        '\\"date\\":\\"\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?',
+        '(([+-]\\d\\d:\\d\\d)|Z)?\\",',
+        '\\"stack\\":\\"[^\\"]*\\",',
+        '\\"message\\":\\"Das isch en anerer Tescht.\\",',
+        '\\"code\\":\\"[^\"]*\\",\\"tags":\\[\\]}'].join(''));
+    ERR_STATUS.log();
+    expect(consoleSpy.mock.calls[0][0]).toMatch(regExp1);
     ERR_STATUS2.log();
-    expect(consoleSpy.mock.calls[2][0]).toMatch(new RegExp(`{\\"date\\":\\"\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?(([+-]\\d\\d:\\d\\d)|Z)?\\",\\"stack\\":\\"[^\\"]*\\",\\"message\\":\\"Das isch en anerer Tescht.\\",\\"code\\":\\"[^\"]*\\",\\"tags":\\[\\]}`));
+    expect(consoleSpy.mock.calls[2][0]).toMatch(regExp2);
 });
 
 test('plainLogTest', () => {
-    Reply.setLogAsJson(false)
+    Reply.setLogAsJson(false);
     const consoleSpy = jest.spyOn(console, 'log');
-    ERR_STATUS.log(); 
-    expect(consoleSpy.mock.calls[4][0]).toMatch(new RegExp(`\\[Error,\\s\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?(([+-]\\d\\d:\\d\\d)|Z)?\]:\\s${message}`));
-    ERR_STATUS2.log(); 
-    expect(consoleSpy.mock.calls[5][0]).toMatch(new RegExp(`\\[Error,\\s\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?(([+-]\\d\\d:\\d\\d)|Z)?\]:\\sDas isch en anerer Tescht.`));
+    const regExp3 = new RegExp(['\\[Error,',
+        '\\s\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?',
+        '(([+-]\\d\\d:\\d\\d)|Z)?\]:\\s',
+        message].join(''));
+    const regExp4 = new RegExp(['\\[Error,',
+        '\\s\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?',
+        '(([+-]\\d\\d:\\d\\d)|Z)?\]:\\sDas isch en anerer Tescht.'].join(''));
+    ERR_STATUS.log();
+    expect(consoleSpy.mock.calls[4][0]).toMatch(regExp3);
+    ERR_STATUS2.log();
+    expect(consoleSpy.mock.calls[5][0]).toMatch(regExp4);
 });
 
 test('okAndNotOk', () => {
