@@ -686,7 +686,7 @@ export class RpcServer<Context extends HttpContext> {
             return true;
         }
 
-        this.mergeContext(mutableContext, receivedContext as Context);
+        this.mergeContext(mutableContext, receivedContext as unknown as Context);
         RpcServer.sendOk(socket, message);
         return true;
     }
