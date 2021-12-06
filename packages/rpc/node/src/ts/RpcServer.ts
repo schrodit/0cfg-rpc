@@ -585,14 +585,14 @@ export class RpcServer<Context extends HttpContext> {
 
     private async connectWebSocket(socket: WebSocket): Promise<void> {
         const mutableContext = this.config.contextFactory({} as express.Request) as Context;
-        const bidiStreams: BidiStreamMap<Context> = {};
-        const serverStreams: ServerStreamMap<Context> = {};
+        const bidiStreamsOfSocket: BidiStreamMap<Context> = {};
+        const serverStreamsOfSocket: ServerStreamMap<Context> = {};
 
         socket.on(WebSocketEvent.Message, async (rawMessage: WebSocket.Data) =>
-            this.handleClientMessage(bidiStreams, serverStreams, mutableContext, rawMessage, socket));
+            this.handleClientMessage(bidiStreamsOfSocket, serverStreamsOfSocket, mutableContext, rawMessage, socket));
 
         await this.keepAliveAndTerminateIfBroken(socket);
-        [...definedValues(bidiStreams), ...definedValues(serverStreams)].forEach(stream => stream.complete);
+        [...definedValues(bidiStreamsOfSocket), ...definedValues(serverStreamsOfSocket)].forEach(stream => stream.complete);
     }
 
     private async keepAliveAndTerminateIfBroken(socket: WebSocket): Promise<Reply> {
@@ -626,15 +626,14 @@ export class RpcServer<Context extends HttpContext> {
             propagateDisconnect!(getOk());
         };
 
-        this.webSocketServer.on('close', gracefulDisconnect);
         socket.on('close', gracefulDisconnect);
 
         return awaitableDisconnect;
     }
 
     private async handleClientMessage(
-        bidiStreams: BidiStreamMap<Context>,
-        serverStreams: ServerStreamMap<Context>,
+        bidiStreamsOfSocket: BidiStreamMap<Context>,
+        serverStreamsOfSocket: ServerStreamMap<Context>,
         mutableContext: Context,
         rawMessage: WebSocket.Data,
         socket: WebSocket
@@ -652,11 +651,11 @@ export class RpcServer<Context extends HttpContext> {
             return;
         }
 
-        if (await this.maybeHandleBidiStreamMessage(bidiStreams, message, mutableContext, socket)) {
+        if (await this.maybeHandleBidiStreamMessage(bidiStreamsOfSocket, message, mutableContext, socket)) {
             return;
         }
 
-        if (await this.maybeHandleServerStreamMessage(serverStreams, message, mutableContext, socket)) {
+        if (await this.maybeHandleServerStreamMessage(serverStreamsOfSocket, message, mutableContext, socket)) {
             return;
         }
 
@@ -750,20 +749,20 @@ export class RpcServer<Context extends HttpContext> {
      * @return {@code true} only if {@param message} is a server stream message.
      */
     private async maybeHandleServerStreamMessage(
-        serverStreams: ServerStreamMap<Context>,
+        serverStreamsOfSocket: ServerStreamMap<Context>,
         message: WebSocketClientMessage<JsonValue>,
         mutableContext: Context,
         socket: WebSocket,
     ): Promise<boolean> {
-        if (!await this.maybeCreateServerStream(serverStreams, message, mutableContext, socket)) {
+        if (!await this.maybeCreateServerStream(serverStreamsOfSocket, message, mutableContext, socket)) {
             return false;
         }
 
-        const stream: AnyServerStreamService<Context> = serverStreams[message.requestId]!;
+        const stream: AnyServerStreamService<Context> = serverStreamsOfSocket[message.requestId]!;
 
         if (message.method === COMPLETE_METHOD) {
             stream.complete(Reply.createFromSerializedReply(message.args as SerializedReply));
-            delete serverStreams[message.requestId];
+            delete serverStreamsOfSocket[message.requestId];
             return true;
         }
 
@@ -774,20 +773,19 @@ export class RpcServer<Context extends HttpContext> {
      * @return {@code true} only if {@param message} is a bidi stream message.
      */
     private async maybeHandleBidiStreamMessage(
-        bidiStreams: BidiStreamMap<Context>,
+        bidiStreamsOfSocket: BidiStreamMap<Context>,
         message: WebSocketClientMessage<JsonValue>,
         mutableContext: Context,
         socket: WebSocket,
     ): Promise<boolean> {
-        if (!has(bidiStreams[message.requestId])) {
-            return this.maybeCreateBidiStream(bidiStreams, message, socket, mutableContext);
-        }
+        const stream: AnyBidiStreamService<Context> | undefined = bidiStreamsOfSocket[message.requestId];
 
-        const stream: AnyBidiStreamService<Context> = bidiStreams[message.requestId]!;
+        if (!has(stream)) {
+            return this.maybeCreateBidiStream(bidiStreamsOfSocket, message, socket, mutableContext);
+        }
 
         if (message.method === COMPLETE_METHOD) {
             stream.complete(Reply.createFromSerializedReply(message.args as SerializedReply));
-            delete bidiStreams[message.requestId];
             return true;
         }
 
@@ -804,7 +802,7 @@ export class RpcServer<Context extends HttpContext> {
      * @return {@code true} only if {@param message} is a bidi stream message.
      */
     private async maybeCreateBidiStream(
-        bidiStreams: BidiStreamMap<Context>,
+        bidiStreamsOfSocket: BidiStreamMap<Context>,
         message: WebSocketClientMessage<JsonValue>,
         socket: WebSocket,
         mutableContext: Context,
@@ -815,7 +813,7 @@ export class RpcServer<Context extends HttpContext> {
             return false;
         }
 
-        await this.wireStreamToServer(message, bidiStreams, stream, socket);
+        await this.wireStreamToServer(message, bidiStreamsOfSocket, stream, socket);
 
         const validation = await stream.runMiddleware(message.args, mutableContext);
         if (validation.notOk()) {
@@ -829,13 +827,13 @@ export class RpcServer<Context extends HttpContext> {
 
     private async wireStreamToServer<ClientMessageT, ServerMessageT>(
         message: WebSocketClientMessage<ClientMessageT>,
-        streamMap: BidiStreamMap<Context> | ServerStreamMap<Context>,
+        streamsOfSocket: BidiStreamMap<Context> | ServerStreamMap<Context>,
         stream: AnyBidiStreamService<Context> | AnyServerStreamService<Context>,
         socket: WebSocket
     ): Promise<void> {
-        streamMap[message.requestId] = stream;
+        streamsOfSocket[message.requestId] = stream;
         stream.setCompleter((end: Reply) => {
-            delete streamMap[message.requestId];
+            delete streamsOfSocket[message.requestId];
             RpcServer.send(socket,
                 {
                     requestId: message.requestId, reply: end.toSerializedReply(), complete: true,
