@@ -594,7 +594,7 @@ export class RpcServer<Context extends HttpContext> {
         await this.keepAliveAndTerminateIfBroken(socket);
         [
             ...definedValues(bidiStreamsOfSocket),
-            ...definedValues(serverStreamsOfSocket)
+            ...definedValues(serverStreamsOfSocket),
         ].forEach(stream => stream.complete);
     }
 
