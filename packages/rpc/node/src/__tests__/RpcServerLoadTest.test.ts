@@ -38,7 +38,7 @@ test('Websocket load test', async () => {
         await socket.connect();
         const webSocketEndpoint = new WebSocketEndpoint(socket);
         const websocketStub = new TestServiceStub(webSocketEndpoint);
-        return websocketStub.newPingPongBidiStream()
+        return websocketStub.createPingPongBidiStream()
     }).map(async streamPromise => {
         const stream = await streamPromise;
         let received = 0;

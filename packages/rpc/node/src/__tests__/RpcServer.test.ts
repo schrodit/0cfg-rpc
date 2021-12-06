@@ -42,11 +42,11 @@ export class TestServiceStub {
         return this.endpoint.requestReplyStub.execute(TestServiceMethods.FailingMiddleware, args);
     }
 
-    public newPingPongBidiStream(): BidiStreamStub<'ping', 'pong'> {
+    public createPingPongBidiStream(): BidiStreamStub<'ping', 'pong'> {
         return this.endpoint.newBidiStreamStub<'ping', 'pong'>(TestServiceMethods.PingPong);
     }
 
-    public newMockServerStream(): ServerStreamStub<'init', 'mock'> {
+    public createMockServerStream(): ServerStreamStub<'init', 'mock'> {
         return this.endpoint.newServerStreamStub<'init', 'mock'>(TestServiceMethods.ServerStreamMock);
     }
 }
@@ -225,7 +225,7 @@ test('request over websocket stub with failing middleware.', async () => {
 });
 
 test('bidi stream over websocket closed by client', async () => {
-    const stream = websocketStub.newPingPongBidiStream();
+    const stream = websocketStub.createPingPongBidiStream();
 
     let received = 0;
 
@@ -255,7 +255,7 @@ test('bidi stream over websocket closed by client', async () => {
 });
 
 test('bidi stream over websocket closed by server', async () => {
-    const stream = websocketStub.newPingPongBidiStream();
+    const stream = websocketStub.createPingPongBidiStream();
 
     let received = 0;
 
@@ -285,7 +285,7 @@ test('bidi stream over websocket closed by server', async () => {
 });
 
 test('server stream over websocket closed by client', async () => {
-    const stream = websocketStub.newMockServerStream();
+    const stream = websocketStub.createMockServerStream();
 
     stream.start('init');
 
