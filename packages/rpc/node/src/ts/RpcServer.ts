@@ -592,7 +592,10 @@ export class RpcServer<Context extends HttpContext> {
             this.handleClientMessage(bidiStreamsOfSocket, serverStreamsOfSocket, mutableContext, rawMessage, socket));
 
         await this.keepAliveAndTerminateIfBroken(socket);
-        [...definedValues(bidiStreamsOfSocket), ...definedValues(serverStreamsOfSocket)].forEach(stream => stream.complete);
+        [
+            ...definedValues(bidiStreamsOfSocket),
+            ...definedValues(serverStreamsOfSocket)
+        ].forEach(stream => stream.complete);
     }
 
     private async keepAliveAndTerminateIfBroken(socket: WebSocket): Promise<Reply> {

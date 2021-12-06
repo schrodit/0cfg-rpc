@@ -1,12 +1,12 @@
-import {milliSecondsInASecond} from "@0cfg/utils-common/lib/timeSpan";
-import {ReconnectingWebSocket} from "@0cfg/stubs-node/lib/messaging/ReconnectingWebSocket";
-import {WebSocketEndpoint} from "@0cfg/rpc-common/lib/stub/Endpoint";
-import {getOk, Reply} from "@0cfg/reply-common/lib/Reply";
-import {TestServiceMethods, TestServiceStub} from "./RpcServer.test";
-import {RpcServer, RpcServerConfig} from "../ts/RpcServer";
-import {bidiStreamFactory} from "../ts/BidiStreamService";
-import {MockBidiStream} from "../ts/__mocks__/MockBidiStream";
-import {expectReply} from "@0cfg/reply-common/lib/TestHelper";
+import {milliSecondsInASecond} from '@0cfg/utils-common/lib/timeSpan';
+import {ReconnectingWebSocket} from '@0cfg/stubs-node/lib/messaging/ReconnectingWebSocket';
+import {WebSocketEndpoint} from '@0cfg/rpc-common/lib/stub/Endpoint';
+import {getOk, Reply} from '@0cfg/reply-common/lib/Reply';
+import {TestServiceMethods, TestServiceStub} from './RpcServer.test';
+import {RpcServer, RpcServerConfig} from '../ts/RpcServer';
+import {bidiStreamFactory} from '../ts/BidiStreamService';
+import {MockBidiStream} from '../ts/__mocks__/MockBidiStream';
+import {expectReply} from '@0cfg/reply-common/lib/TestHelper';
 
 const LOAD_TEST_SOCKETS = 200;
 const MESSAGES_PER_SOCKET = 200;
@@ -38,7 +38,7 @@ test('Websocket load test', async () => {
         await socket.connect();
         const webSocketEndpoint = new WebSocketEndpoint(socket);
         const websocketStub = new TestServiceStub(webSocketEndpoint);
-        return websocketStub.createPingPongBidiStream()
+        return websocketStub.createPingPongBidiStream();
     }).map(async streamPromise => {
         const stream = await streamPromise;
         let received = 0;
