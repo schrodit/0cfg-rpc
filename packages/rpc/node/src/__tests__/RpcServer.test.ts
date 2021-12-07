@@ -251,7 +251,7 @@ test('bidi stream over websocket closed by client', async () => {
     expect(received).toBe(500);
     expect(mockBidiStream.receivedCount).toBe(500);
     expect(mockServiceMiddleware.calledNTimes).toBe(500);
-    expect(mockBidiStream.completed).toEqual(getOk());
+    expectReply(mockBidiStream.completed).toBeOk();
 });
 
 test('bidi stream over websocket closed by server', async () => {
@@ -274,14 +274,20 @@ test('bidi stream over websocket closed by server', async () => {
     }
 
     await allRepliesReceived;
-    stream.complete(getOk());
 
-    await mockBidiStream.completePromise;
+    const completionPromise = new Promise<Reply>(
+        resolve => stream.onCompleted(async (end: Reply) => {
+                resolve(end);
+            }
+        ));
 
+    mockBidiStream.complete(getOk());
+
+    await expectReply(completionPromise).resolves.toBeOk();
     expect(received).toBe(500);
     expect(mockBidiStream.receivedCount).toBe(500);
     expect(mockServiceMiddleware.calledNTimes).toBe(500);
-    expect(mockBidiStream.completed).toEqual(getOk());
+    expectReply(mockBidiStream.completed).toBeOk();
 });
 
 test('server stream over websocket closed by client', async () => {
