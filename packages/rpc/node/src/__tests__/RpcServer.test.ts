@@ -42,11 +42,11 @@ export class TestServiceStub {
         return this.endpoint.requestReplyStub.execute(TestServiceMethods.FailingMiddleware, args);
     }
 
-    public pingPongBidiStream(): BidiStreamStub<'ping', 'pong'> {
+    public createPingPongBidiStream(): BidiStreamStub<'ping', 'pong'> {
         return this.endpoint.newBidiStreamStub<'ping', 'pong'>(TestServiceMethods.PingPong);
     }
 
-    public mockServerStream(): ServerStreamStub<'init', 'mock'> {
+    public createMockServerStream(): ServerStreamStub<'init', 'mock'> {
         return this.endpoint.newServerStreamStub<'init', 'mock'>(TestServiceMethods.ServerStreamMock);
     }
 }
@@ -225,7 +225,7 @@ test('request over websocket stub with failing middleware.', async () => {
 });
 
 test('bidi stream over websocket closed by client', async () => {
-    const stream = websocketStub.pingPongBidiStream();
+    const stream = websocketStub.createPingPongBidiStream();
 
     let received = 0;
 
@@ -251,11 +251,11 @@ test('bidi stream over websocket closed by client', async () => {
     expect(received).toBe(500);
     expect(mockBidiStream.receivedCount).toBe(500);
     expect(mockServiceMiddleware.calledNTimes).toBe(500);
-    expect(mockBidiStream.completed).toEqual(getOk());
+    expectReply(mockBidiStream.completed).toBeOk();
 });
 
 test('bidi stream over websocket closed by server', async () => {
-    const stream = websocketStub.pingPongBidiStream();
+    const stream = websocketStub.createPingPongBidiStream();
 
     let received = 0;
 
@@ -283,14 +283,15 @@ test('bidi stream over websocket closed by server', async () => {
 
     mockBidiStream.complete(getOk());
 
-    await expect(completionPromise).resolves.toEqual(getOk());
+    await expectReply(completionPromise).resolves.toBeOk();
     expect(received).toBe(500);
     expect(mockBidiStream.receivedCount).toBe(500);
     expect(mockServiceMiddleware.calledNTimes).toBe(500);
+    expectReply(mockBidiStream.completed).toBeOk();
 });
 
 test('server stream over websocket closed by client', async () => {
-    const stream = websocketStub.mockServerStream();
+    const stream = websocketStub.createMockServerStream();
 
     stream.start('init');
 
