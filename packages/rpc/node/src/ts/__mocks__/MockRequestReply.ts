@@ -4,6 +4,7 @@ import {okStatus, Reply, ReplyPromise} from '@0cfg/reply-common/lib/Reply';
 import {Middleware} from '../Middleware';
 import {HttpStatusCode} from '@0cfg/http-common/lib/HttpStatusCode';
 import {has} from '@0cfg/utils-common/lib/has';
+import {Finalizer} from '../Finalizer';
 
 export type MockRequestReplyServiceArgs = { name: string };
 
@@ -13,7 +14,7 @@ export class MockRequestReplyService extends RequestReplyService<MockRequestRepl
     private readonly name: string;
     private httpStatusCode: HttpStatusCode | undefined;
 
-    public constructor(name: string, middleware?: Middleware<unknown, unknown>, httpStatusCode?: HttpStatusCode) {
+    public constructor(name: string, middleware?: Middleware<unknown, HttpContext>, httpStatusCode?: HttpStatusCode) {
         super();
         middleware && this.addMiddlewareToQueue(middleware);
         this.name = name;
@@ -60,6 +61,33 @@ export class MockMiddleware implements Middleware<unknown, HttpContext> {
     }
 
     public async execute(args: unknown, context: unknown): ReplyPromise<never> {
+        this.calledNTimes++;
+        this.lastArgs = args;
+        this.lastContext = context;
+        return this.reply;
+    }
+}
+
+export class MockFinalizer implements Finalizer<unknown, HttpContext> {
+
+    public calledNTimes = 0;
+    public lastArgs: any = null;
+    public lastContext: any = null;
+    private readonly reply: Reply;
+    private readonly httpStatusCode: HttpStatusCode;
+
+    public constructor(reply: Reply, httpStatusCode: HttpStatusCode) {
+        this.reply = reply;
+        this.httpStatusCode = httpStatusCode;
+    }
+
+    public reset() {
+        this.calledNTimes = 0;
+        this.lastArgs = null;
+        this.lastContext = null;
+    }
+
+    public async execute(args: unknown, context: unknown, serviceReply: Reply<unknown>): Promise<Reply> {
         this.calledNTimes++;
         this.lastArgs = args;
         this.lastContext = context;
