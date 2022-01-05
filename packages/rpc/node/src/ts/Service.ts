@@ -3,9 +3,10 @@ import {getOk, Reply, ReplyPromise} from '@0cfg/reply-common/lib/Reply';
 import {Middleware} from './Middleware';
 import {injectable} from 'inversify';
 import {has} from '@0cfg/utils-common/lib/has';
+import {HttpContext} from '@0cfg/rpc-common/lib/HttpContext';
 
 @injectable()
-export abstract class Service<ArgsT, MutableContextT> {
+export abstract class Service<ArgsT, MutableContextT extends HttpContext> {
     private middlewareQueue: Middleware<ArgsT, MutableContextT>[] = [];
 
     public abstract getName(): string;
