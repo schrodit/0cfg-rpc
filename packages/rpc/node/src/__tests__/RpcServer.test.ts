@@ -2,12 +2,7 @@ import fetch from 'node-fetch';
 import {HttpStatusCode} from '@0cfg/http-common/lib/HttpStatusCode';
 import {errStatus, getOk, okStatus, Reply} from '@0cfg/reply-common/lib/Reply';
 import {RpcServer, RpcServerConfig} from '../ts/RpcServer';
-import {
-    MockFinalizer,
-    MockMiddleware,
-    MockRequestReplyService,
-    MockRequestReplyServiceArgs,
-} from '../ts/__mocks__/MockRequestReply';
+import {MockMiddleware, MockRequestReplyService, MockRequestReplyServiceArgs} from '../ts/__mocks__/MockRequestReply';
 import {stringify} from '@0cfg/utils-common/lib/stringify';
 import {ReconnectingWebSocket} from '@0cfg/stubs-node/lib/messaging/ReconnectingWebSocket';
 import {Endpoint, HttpEndpoint, WebSocketEndpoint} from '@0cfg/rpc-common/lib/stub/Endpoint';
@@ -60,7 +55,6 @@ export class TestServiceStub {
 const PORT = 8080;
 const mockServiceMiddleware = new MockMiddleware(getOk(), HttpStatusCode.Ok);
 const mockServerMiddleware = new MockMiddleware(getOk(), HttpStatusCode.Ok);
-const mockServerFinalizer = new MockFinalizer(getOk(), HttpStatusCode.Ok);
 const failingMiddleware = new MockMiddleware(errStatus('Bad arguments.'), HttpStatusCode.BadRequest);
 
 const basicRequestReply = new MockRequestReplyService(TestServiceMethods.RequestReply, mockServiceMiddleware);
@@ -76,7 +70,6 @@ const mockServerStream = new MockServerStream(TestServiceMethods.ServerStreamMoc
 const withMockRequestReply = RpcServerConfig.newBuilder().setPort(PORT)
     .allowAllOriginsAndHeadersAndRequests()
     .addServerMiddleware(mockServerMiddleware)
-    .addServerFinalizer(mockServerFinalizer)
     .addRequestReplyService(basicRequestReply)
     .addRequestReplyService(failingMiddlewareRequestReply)
     .addRequestReplyService(otherStatusCodeRequestReply)
@@ -108,7 +101,6 @@ beforeEach(() => {
     otherStatusCodeRequestReply.reset();
     mockServiceMiddleware.reset();
     mockServerMiddleware.reset();
-    mockServerFinalizer.reset();
     failingMiddlewareRequestReply.reset();
     failingMiddleware.reset();
     mockBidiStream.reset();
@@ -122,7 +114,6 @@ test('request over native http with unparseable body.', async () => {
     expect(basicRequestReply.calledNTimes).toBe(0);
     expect(mockServiceMiddleware.calledNTimes).toBe(0);
     expect(mockServerMiddleware.calledNTimes).toBe(0);
-    expect(mockServerFinalizer.calledNTimes).toBe(0);
 });
 
 test('request over native http with undefined body.', async () => {
@@ -133,7 +124,6 @@ test('request over native http with undefined body.', async () => {
     expect(basicRequestReply.calledNTimes).toBe(0);
     expect(mockServiceMiddleware.calledNTimes).toBe(0);
     expect(mockServerMiddleware.calledNTimes).toBe(0);
-    expect(mockServerFinalizer.calledNTimes).toBe(0);
 });
 
 test('request over native http with valid parameters.', async () => {
@@ -149,10 +139,8 @@ test('request over native http with valid parameters.', async () => {
     expect(basicRequestReply.lastArgs).toEqual({name: 'Jonas du alte Socke'});
     expect(mockServiceMiddleware.calledNTimes).toBe(1);
     expect(mockServerMiddleware.calledNTimes).toBe(1);
-    expect(mockServerFinalizer.calledNTimes).toBe(1);
     expect(mockServiceMiddleware.lastArgs).toEqual({name: 'Jonas du alte Socke'});
     expect(mockServerMiddleware.lastArgs).toEqual({name: 'Jonas du alte Socke'});
-    expect(mockServerFinalizer.lastArgs).toEqual({name: 'Jonas du alte Socke'});
 });
 
 test('request over native http with valid parameters other status code.', async () => {
@@ -225,10 +213,8 @@ test('request over websocket stub with valid parameters.', async () => {
     expect(basicRequestReply.lastArgs).toEqual({name: 'Jonas du alte Socke'});
     expect(mockServiceMiddleware.calledNTimes).toBe(1);
     expect(mockServerMiddleware.calledNTimes).toBe(1);
-    expect(mockServerFinalizer.calledNTimes).toBe(1);
     expect(mockServiceMiddleware.lastArgs).toEqual({name: 'Jonas du alte Socke'});
     expect(mockServerMiddleware.lastArgs).toEqual({name: 'Jonas du alte Socke'});
-    expect(mockServerFinalizer.lastArgs).toEqual({name: 'Jonas du alte Socke'});
 });
 
 test('request over websocket stub with failing middleware.', async () => {
