@@ -9,7 +9,7 @@ import {injectable} from 'inversify';
  * Note that this is intended to be used with {@link RpcServer}.
  */
 @injectable()
-export abstract class RequestReplyService<ArgsT, ReplyT, MutableContextT extends HttpContext = HttpContext>
+export abstract class RequestReplyService<ArgsT, ReplyT, MutableContextT = HttpContext>
     extends Service<ArgsT, MutableContextT> {
     public abstract execute(args: ArgsT, context: MutableContextT): ReplyPromise<ReplyT>;
 }
