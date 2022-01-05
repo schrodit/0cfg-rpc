@@ -15,7 +15,7 @@ export class MockBidiStream extends BidiStreamService<'ping', 'pong'> {
     });
     private resolve?: (() => void);
 
-    public constructor(name: string, middleware?: Middleware<unknown, unknown>) {
+    public constructor(name: string, middleware?: Middleware<unknown, HttpContext>) {
         super();
         this.name = name;
         has(middleware) && this.addMiddlewareToQueue(middleware);

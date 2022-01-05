@@ -17,7 +17,7 @@ export class MockServerStream extends ServerStreamService<'init', 'mock'> {
     });
     private resolve?: (() => void);
 
-    public constructor(name: string, middleware: Middleware<unknown, unknown>) {
+    public constructor(name: string, middleware: Middleware<unknown, HttpContext>) {
         super();
         this.name = name;
         this.addMiddlewareToQueue(middleware);

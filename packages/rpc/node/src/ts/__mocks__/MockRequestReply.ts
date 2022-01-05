@@ -45,7 +45,7 @@ export class MockMiddleware implements Middleware<unknown, HttpContext> {
 
     public calledNTimes = 0;
     public lastArgs: any = null;
-    public lastContext: any = null;
+    public lastContext?: HttpContext = undefined;
     private readonly reply: Reply;
     private readonly httpStatusCode: HttpStatusCode;
 
@@ -57,10 +57,10 @@ export class MockMiddleware implements Middleware<unknown, HttpContext> {
     public reset() {
         this.calledNTimes = 0;
         this.lastArgs = null;
-        this.lastContext = null;
+        this.lastContext = undefined;
     }
 
-    public async execute(args: unknown, context: unknown): ReplyPromise<never> {
+    public async execute(args: unknown, context: HttpContext): ReplyPromise<never> {
         this.calledNTimes++;
         this.lastArgs = args;
         this.lastContext = context;
