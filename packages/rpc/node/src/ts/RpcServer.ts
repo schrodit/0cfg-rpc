@@ -31,6 +31,7 @@ import {AnyBidiStreamService, AnyBidiStreamServiceFactory} from './BidiStreamSer
 import {AnyServerStreamService, AnyServerStreamServiceFactory} from './ServerStreamService';
 import {Middleware} from './Middleware';
 import {definedValues} from '@0cfg/utils-common/lib/definedValues';
+import {Finalizer} from './Finalizer';
 
 const UNKNOWN_REQUEST_ID = 0;
 
@@ -100,6 +101,7 @@ type InternalRpcServerConfig<Context extends HttpContext> = {
     serverStreamFactoryList: AnyServerStreamServiceFactory<Context>[];
     staticPaths: StaticPath[],
     middlewareQueue: Middleware<unknown, Context>[],
+    finalizerQueue: Finalizer<unknown, Context>[],
     contextFactory: ContextFactory<Context>,
     connectionTimeout: number
 };
@@ -173,6 +175,11 @@ export namespace RpcServerConfig {
         addServerMiddleware(middleware: Middleware<unknown, Context>): Builder<Context>;
 
         /**
+         * Bind a {@link Middleware} which runs before any request to the server is made.
+         */
+        addServerFinalizer(middleware: Finalizer<unknown, Context>): Builder<Context>;
+
+        /**
          * Set the factory to create the server context.
          * The server will create a {@link HttpContext} and cast it to the provided context type if none is set.
          */
@@ -218,6 +225,7 @@ export class RpcServerConfig<Context extends HttpContext = HttpContext> implemen
             serverStreamFactoryList: [],
             staticPaths: [],
             middlewareQueue: [],
+            finalizerQueue: [],
             contextFactory: DEFAULT_CONTEXT_FACTORY_FACTORY<Context>(),
             connectionTimeout: 10 * milliSecondsInASecond,
             expressApp: undefined,
@@ -304,6 +312,13 @@ export class RpcServerConfig<Context extends HttpContext = HttpContext> implemen
             return this;
         }
 
+        public addServerFinalizer(
+            finalizer: Finalizer<unknown, Context>
+        ): RpcServerConfig.Builder<Context> {
+            this.defaultConfig.finalizerQueue.push(finalizer);
+            return this;
+        }
+
         public setContextFactory(
             contextFactory: ContextFactory<Context>
         ): RpcServerConfig.Builder<Context> {
@@ -359,6 +374,7 @@ export class RpcServerConfig<Context extends HttpContext = HttpContext> implemen
     public readonly requestReplyList: AnyRequestReplyService<Context>[];
     public readonly staticPaths: StaticPath[];
     public readonly middlewareQueue: Middleware<unknown, Context>[];
+    public readonly finalizerQueue: Finalizer<unknown, Context>[];
     public readonly contextFactory: ContextFactory<Context>;
     public readonly bidiStreamFactoryList: AnyBidiStreamServiceFactory<Context>[];
     public readonly serverStreamFactoryList: AnyServerStreamServiceFactory<Context>[];
@@ -375,6 +391,7 @@ export class RpcServerConfig<Context extends HttpContext = HttpContext> implemen
         this.bidiStreamFactoryList = config.bidiStreamFactoryList;
         this.serverStreamFactoryList = config.serverStreamFactoryList;
         this.middlewareQueue = config.middlewareQueue;
+        this.finalizerQueue = config.finalizerQueue;
         this.contextFactory = config.contextFactory;
         this.connectionTimeout = config.connectionTimeout;
         this.expressApp = config.expressApp;
@@ -554,13 +571,20 @@ export class RpcServer<Context extends HttpContext> {
             return;
         }
 
-        const serverValidation = await this.runServerMiddleware(args, mutableContext);
-        if (serverValidation.notOk()) {
-            this.replyViaHttp(serverValidation, mutableContext, res);
+        const middlewareReply = await this.runServerMiddleware(args, mutableContext);
+        if (middlewareReply.notOk()) {
+            this.replyViaHttp(middlewareReply, mutableContext, res);
             return;
         }
 
         const reply = await this.runServiceMiddlewareAndExecuteRequestReply(service, args, mutableContext);
+
+        const finalizerReply = await this.runServerFinalizers(args, mutableContext, reply);
+        if (finalizerReply.notOk()) {
+            this.replyViaHttp(finalizerReply, mutableContext, res);
+            return;
+        }
+
         this.replyViaHttp(reply, mutableContext, res);
     }
 
@@ -650,7 +674,7 @@ export class RpcServer<Context extends HttpContext> {
             return;
         }
 
-        if (!await this.serverValidation(socket, message, mutableContext)) {
+        if (!await this.runAndValidateServerMiddleware(socket, message, mutableContext)) {
             return;
         }
 
@@ -708,7 +732,7 @@ export class RpcServer<Context extends HttpContext> {
         }
     }
 
-    private async serverValidation(
+    private async runAndValidateServerMiddleware(
         socket: WebSocket,
         message: WebSocketClientMessage<JsonValue>,
         mutableContext: Context
@@ -727,6 +751,27 @@ export class RpcServer<Context extends HttpContext> {
         return true;
     }
 
+    private async runAndValidateServerFinalizers(
+        socket: WebSocket,
+        message: WebSocketClientMessage<JsonValue>,
+        mutableContext: Context,
+        serviceReply: Reply<unknown>,
+    ): Promise<boolean> {
+        const finalizerReply = await this.runServerFinalizers(
+            message.args,
+            mutableContext,
+            serviceReply,
+        );
+        if (finalizerReply.notOk()) {
+            RpcServer.send(socket, {
+                requestId: message.requestId,
+                reply: finalizerReply.toSerializedReply(),
+            });
+            return false;
+        }
+        return true;
+    }
+
     private async maybeExecuteRequestReply(
         socket: WebSocket,
         message: WebSocketClientMessage<JsonValue>,
@@ -739,6 +784,11 @@ export class RpcServer<Context extends HttpContext> {
         }
         const reply = await this.runServiceMiddlewareAndExecuteRequestReply(service,
             message.args, mutableContext as Context);
+
+        if (!await this.runAndValidateServerFinalizers(socket, message, mutableContext, reply)) {
+            return false;
+        }
+
         RpcServer.send(socket,
             {
                 requestId: message.requestId,
@@ -884,6 +934,25 @@ export class RpcServer<Context extends HttpContext> {
             }
             if (!validation.ok()) {
                 return validation;
+            }
+        }
+        return getOk();
+    }
+
+    private async runServerFinalizers(
+        args: any,
+        context: Context,
+        serviceReply: Reply<unknown>,
+    ): Promise<Reply> {
+        for (const finalizer of this.config.finalizerQueue) {
+            let result;
+            try {
+                result = await finalizer.execute(args, context, serviceReply);
+            } catch (e) {
+                return Reply.createFromError(e);
+            }
+            if (!result.ok()) {
+                return result;
             }
         }
         return getOk();
