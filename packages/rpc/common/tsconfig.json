@@ -8,6 +8,9 @@
       {
         "transform": "ts-type-checked/transformer"
       }
+    ],
+    "lib": [
+      "dom"
     ]
   }
 }
