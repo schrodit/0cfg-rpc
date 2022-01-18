@@ -16,7 +16,7 @@ export class WebSocketRequestReplyStub implements RequestReplyStub {
     public async execute<ReplyT, ArgsT>(method: string, args: ArgsT): ReplyPromise<ReplyT> {
         const requestId: number = this.sequential.next();
         const result = new Promise<Reply<ReplyT>>((resolve) => {
-            setTimeout(() => resolve(resolve(errStatus("Timeout"))), 2000)
+            setTimeout(() => resolve(resolve(errStatus('Timeout'))), 2000)
             this.socket.onClose(message => resolve(errStatus(message)));
             this.socket.onMessage(data => {
                 const message = parse<SerializedReply<ReplyT>>(data);
