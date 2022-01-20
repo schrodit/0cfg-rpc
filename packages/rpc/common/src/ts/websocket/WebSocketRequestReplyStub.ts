@@ -31,7 +31,7 @@ export class WebSocketRequestReplyStub implements RequestReplyStub {
         });
 
 
-        if (sendSuccessfulReply.notOk()){
+        if (sendSuccessfulReply.notOk()) {
             return sendSuccessfulReply;
         }
 
