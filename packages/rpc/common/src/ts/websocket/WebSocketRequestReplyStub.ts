@@ -24,11 +24,17 @@ export class WebSocketRequestReplyStub implements RequestReplyStub {
                 }
             });
         });
-        send<ArgsT>(this.socket, {
+        const sendReply = send<ArgsT>(this.socket, {
             method: method,
             requestId: requestId,
             args: args,
         });
+
+
+        if (sendReply.notOk()) {
+            return sendReply;
+        }
+
         return result;
     }
 }
