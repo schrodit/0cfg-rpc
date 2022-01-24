@@ -1,6 +1,6 @@
 {
   "name": "@0cfg/rpc-common",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Elias Groll <elias@codesphere.cloud>",
   "license": "MIT",
   "private": false,
